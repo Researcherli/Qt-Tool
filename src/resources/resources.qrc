@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>themes/industrial_dark.qss</file>
+        <file>themes/wood_classic.qss</file>
+    </qresource>
+</RCC>
