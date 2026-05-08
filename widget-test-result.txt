@@ -1,0 +1,68 @@
+********* Start testing of AppWidgetTests *********
+Config: Using QtTest library 6.11.0, Qt 6.11.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2022), windows 11
+PASS   : AppWidgetTests::initTestCase()
+PASS   : AppWidgetTests::quickCommandPanelShowsOnlyListAndEditActions()
+PASS   : AppWidgetTests::quickCommandPanelUsesTallerCommandList()
+PASS   : AppWidgetTests::quickCommandPanelDisplaysCommandsAsNamePipeContent()
+QWARN  : AppWidgetTests::quickCommandAddDialogOnlyAsksForNameAndContent() QFontDatabase: Cannot find font directory F:/Qt/6.11.0/msvc2022_64/lib/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QWARN  : AppWidgetTests::quickCommandAddDialogOnlyAsksForNameAndContent() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::quickCommandAddDialogOnlyAsksForNameAndContent()
+PASS   : AppWidgetTests::serialPortComboUsesBelowPopupPlacement()
+QWARN  : AppWidgetTests::serialReceiveToolbarMovesSettingsDownAndRemovesTimestampToggle() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::serialReceiveToolbarMovesSettingsDownAndRemovesTimestampToggle()
+PASS   : AppWidgetTests::serialReceiveEntriesIncludeTimestampPrefix()
+QWARN  : AppWidgetTests::serialReceiveAutoScrollCheckboxControlsScrollPosition() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::serialReceiveAutoScrollCheckboxControlsScrollPosition()
+PASS   : AppWidgetTests::serialReceiveFixedFieldsUseCompactPaintedBadges()
+QWARN  : AppWidgetTests::serialReceiveSettingsCanDisableFixedFieldHighlight() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::serialReceiveSettingsCanDisableFixedFieldHighlight()
+FAIL!  : AppWidgetTests::serialReceiveTextZoomsWithControlWheel() 'textEdit->font().pointSizeF() > originalPointSize' returned FALSE. ()
+G:\Qtools\Embedded_software_tools\tests\app_widget_tests.cpp(512) : failure location
+QWARN  : AppWidgetTests::serialAdvancedSettingsDialogUpdatesConfig() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::serialAdvancedSettingsDialogUpdatesConfig()
+PASS   : AppWidgetTests::serialAssistantShowsSentPayloadInDataArea()
+FAIL!  : AppWidgetTests::serialAssistantTimestampToggleControlsDataAreaTimestamp() 'timestampToggle != nullptr' returned FALSE. ()
+G:\Qtools\Embedded_software_tools\tests\app_widget_tests.cpp(622) : failure location
+FAIL!  : AppWidgetTests::serialReceiveClearResetsTransferStats() Compared values are not the same
+   Actual   (receiveText->toPlainText()): "[14:38:31.501] TX COM_TEST: ping\\r\\n"
+   Expected (QString())                 : ""
+G:\Qtools\Embedded_software_tools\tests\app_widget_tests.cpp(709) : failure location
+QWARN  : AppWidgetTests::serialReceiveAndSendAreasUseSameWidth() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::serialReceiveAndSendAreasUseSameWidth()
+QWARN  : AppWidgetTests::serialSendControlsUseRoomierLayout() This plugin does not support propagateSizeHints()
+FAIL!  : AppWidgetTests::serialSendControlsUseRoomierLayout() Compared values are not the same
+   Actual   (sendButtonRect.bottom() + 1): 75
+   Expected (clearButtonRect.top())      : 81
+G:\Qtools\Embedded_software_tools\tests\app_widget_tests.cpp(835) : failure location
+QWARN  : AppWidgetTests::serialSendOptionsUseButtonLikeToggleArea() This plugin does not support propagateSizeHints()
+FAIL!  : AppWidgetTests::serialSendOptionsUseButtonLikeToggleArea() Compared values are not the same
+   Actual   (optionButtons.size()): 0
+   Expected (6)                   : 6
+G:\Qtools\Embedded_software_tools\tests\app_widget_tests.cpp(850) : failure location
+FAIL!  : AppWidgetTests::serialSendOptionButtonsPerformTheirFunctions() 'timestampToggle != nullptr' returned FALSE. ()
+G:\Qtools\Embedded_software_tools\tests\app_widget_tests.cpp(948) : failure location
+PASS   : AppWidgetTests::binDataInspectorParsesLittleAndBigEndianValues()
+PASS   : AppWidgetTests::binDataInspectorMarksUnavailableValuesAtEnd()
+PASS   : AppWidgetTests::binChecksumServiceCalculatesKnownVectors()
+PASS   : AppWidgetTests::binHexViewerHighlightsMatchingBytes()
+PASS   : AppWidgetTests::binHexViewerShowsFileOverviewStrip()
+QWARN  : AppWidgetTests::binHexViewerOverviewClickMovesCurrentOffset() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::binHexViewerOverviewClickMovesCurrentOffset()
+PASS   : AppWidgetTests::binHexViewerHighlightsAllSearchResultRanges()
+PASS   : AppWidgetTests::binHexViewerHighlightsWholeStringRangeInHexAndAscii()
+PASS   : AppWidgetTests::stringExtractPanelActivatesOffsetAndLengthOnDoubleClick()
+PASS   : AppWidgetTests::stringExtractPanelUsesAsciiOnlyToolbarWithWideFilter()
+PASS   : AppWidgetTests::binAnalyzerShowsInspectorAndChecksumAfterLoadingFile()
+PASS   : AppWidgetTests::binAnalyzerPageUsesToolAreaWithoutHeaderCopy()
+QWARN  : AppWidgetTests::binAnalyzerDefaultSplitKeepsHexAndAnalysisReadable() This plugin does not support propagateSizeHints()
+PASS   : AppWidgetTests::binAnalyzerDefaultSplitKeepsHexAndAnalysisReadable()
+PASS   : AppWidgetTests::dataConvertServiceFormatsCArray()
+PASS   : AppWidgetTests::dataConvertServiceSupportsBase64AndDecimalByteLists()
+PASS   : AppWidgetTests::dataConvertWidgetFocusesOnFormatConversion()
+PASS   : AppWidgetTests::dataConvertPageStartsWithConverterControls()
+PASS   : AppWidgetTests::dataConvertWidgetUsesTopControlsAndLargeEditors()
+PASS   : AppWidgetTests::enabledThemeAndPaintedAssetsUseWhiteBluePalette()
+PASS   : AppWidgetTests::cleanupTestCase()
+Totals: 34 passed, 6 failed, 0 skipped, 0 blacklisted, 790ms
+********* Finished testing of AppWidgetTests *********

@@ -1,0 +1,13 @@
+jom: parallel job execution disabled for Makefile
+[  0%] Built target est_core_autogen_timestamp_deps
+[  2%] Built target est_core_autogen
+[ 37%] Built target est_core
+[ 37%] Built target est_app_autogen_timestamp_deps
+[ 40%] Built target est_app_autogen
+[ 42%] Linking CXX executable ..\..\bin\est_app.exe
+LINK: command "F:\MICROS~3\18\COMMUN~1\VC\Tools\MSVC\1450~1.357\bin\Hostx64\x64\link.exe /nologo @CMakeFiles\est_app.dir\objects1.rsp /out:..\..\bin\est_app.exe /implib:..\..\lib\est_app.lib /pdb:G:\Qtools\Embedded_software_tools\build\Desktop_Qt_6_11_0_MSVC2022_64bit-Release\bin\est_app.pdb /version:0.0 /machine:x64 /INCREMENTAL:NO /subsystem:windows /INCREMENTAL:NO /LTCG ..\..\lib\est_core.lib F:\Qt\6.11.0\msvc2022_64\lib\Qt6Widgets.lib F:\Qt\6.11.0\msvc2022_64\lib\Qt6Gui.lib d3d11.lib dxgi.lib dxguid.lib d3d12.lib F:\Qt\6.11.0\msvc2022_64\lib\Qt6SerialPort.lib F:\Qt\6.11.0\msvc2022_64\lib\Qt6Core.lib mpr.lib userenv.lib F:\Qt\6.11.0\msvc2022_64\lib\Qt6EntryPoint.lib shell32.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST:EMBED,ID=1" failed (exit code 1104) with the following output:
+LINK : fatal error LNK1104: 无法打开文件“..\..\bin\est_app.exe”
+jom: G:\Qtools\Embedded_software_tools\build\Desktop_Qt_6_11_0_MSVC2022_64bit-Release\src\app\CMakeFiles\est_app.dir\build.make [bin\est_app.exe] Error 2
+jom: G:\Qtools\Embedded_software_tools\build\Desktop_Qt_6_11_0_MSVC2022_64bit-Release\CMakeFiles\Makefile2 [src\app\CMakeFiles\est_app.dir\all] Error 2
+jom: G:\Qtools\Embedded_software_tools\build\Desktop_Qt_6_11_0_MSVC2022_64bit-Release\CMakeFiles\Makefile2 [src\app\CMakeFiles\est_app.dir\rule] Error 2
+jom: G:\Qtools\Embedded_software_tools\build\Desktop_Qt_6_11_0_MSVC2022_64bit-Release\Makefile [est_app] Error 2

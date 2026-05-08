@@ -101,6 +101,43 @@ QStringList PluginLoader::discoverPlugins() const
 IPlugin* PluginLoader::loadPluginFile(const QString& filePath)
 {
     QPluginLoader* loader = new QPluginLoader(filePath, this);
+
+    // 先检查插件元数据，避免加载不兼容的 DLL 导致进程崩溃
+    // QPluginLoader::metaData() 仅读取 DLL 的 JSON 元数据段，不会执行 DLL 代码
+    const QJsonObject metadata = loader->metaData();
+    const QString iid = metadata.value(QStringLiteral("IID")).toString();
+    const int qtVersion = metadata.value(QStringLiteral("version")).toInt();
+
+    if (iid.isEmpty()) {
+        qWarning() << "Plugin has no IID metadata, skipping:" << filePath;
+        emit pluginLoadFailed(filePath, QStringLiteral("No IID metadata (not a valid Qt plugin)"));
+        delete loader;
+        return nullptr;
+    }
+
+    // Qt 插件版本号高 16 位 = major, 低 16 位 = minor
+    // 检查主版本号是否与当前 Qt 版本兼容（主版本号不一致必定崩溃）
+    const int pluginMajorVersion = (qtVersion >> 16) & 0xFFFF;
+    const int runtimeMajorVersion = (QT_VERSION >> 16) & 0xFFFF;
+    if (pluginMajorVersion != 0 && pluginMajorVersion != runtimeMajorVersion) {
+        qWarning() << "Plugin Qt version mismatch:" << filePath
+                    << "plugin Qt major:" << pluginMajorVersion
+                    << "runtime Qt major:" << runtimeMajorVersion;
+        emit pluginLoadFailed(filePath, QStringLiteral("Qt version mismatch (plugin: %1, runtime: %2)")
+                              .arg(pluginMajorVersion).arg(runtimeMajorVersion));
+        delete loader;
+        return nullptr;
+    }
+
+    // 验证 IID 是否匹配我们期望的接口
+    // IPlugin 接口的 IID 在 IPlugin.h 中通过 Q_PLUGIN_METADATA(IID "org.est.IPlugin") 声明
+    if (iid != QStringLiteral("org.est.IPlugin")) {
+        qWarning() << "Plugin IID mismatch:" << filePath << "IID:" << iid;
+        emit pluginLoadFailed(filePath, QStringLiteral("IID mismatch: expected org.est.IPlugin, got %1").arg(iid));
+        delete loader;
+        return nullptr;
+    }
+
     QObject* instance = loader->instance();
 
     if (!instance) {

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QVariantList>
+#include <QMutex>
 
 namespace est
 {
@@ -16,6 +17,7 @@ namespace est
         QVariantList recentSerialConfigs() const;
         QVariantList recentBinFiles() const;
         QVariantList recentSearchKeywords() const;
+        QVariantList recentComparePairs() const;
 
         void addSerialProfile(const QString &portName,
                               int baudRate,
@@ -27,12 +29,18 @@ namespace est
         void addSearchKeyword(const QString &keyword,
                               const QString &type);
 
+        void addComparePair(const QString &leftPath, const QString &rightPath,
+                            qint64 leftSize, qint64 rightSize);
+
         void clearAll();
 
     private:
         QVariantList recordsForKey(const QString &key) const;
         void appendRecord(const QString &key,
                           const QVariantMap &record);
+        void appendCompareRecord(const QVariantMap &record);
+
+        mutable QMutex m_mutex;  // 保护 JSON 文件的并发读写
     };
 
 } // namespace est

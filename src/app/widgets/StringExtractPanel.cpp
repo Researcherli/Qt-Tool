@@ -1,6 +1,5 @@
 #include "widgets/StringExtractPanel.h"
 
-#include <QComboBox>
 #include <QFile>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -30,21 +29,15 @@ namespace est
         m_minLengthSpinBox->setRange(2, 64);
         m_minLengthSpinBox->setValue(4);
 
-        m_encodingCombo = new QComboBox(this);
-        m_encodingCombo->addItem(QStringLiteral("ASCII"), QStringLiteral("ascii"));
-        m_encodingCombo->addItem(QStringLiteral("UTF-8"), QStringLiteral("utf8"));
-        m_encodingCombo->addItem(QStringLiteral("GBK"), QStringLiteral("gbk"));
-
         auto *refreshButton = new QPushButton(tr("重新提取"), this);
         m_filterEdit = new QLineEdit(this);
+        m_filterEdit->setObjectName(QStringLiteral("stringFilterEdit"));
+        m_filterEdit->setMinimumWidth(280);
         m_filterEdit->setPlaceholderText(tr("按关键字过滤字符串"));
-        auto *exportButton = new QPushButton(tr("导出"), this);
 
         toolLayout->addWidget(m_minLengthSpinBox);
-        toolLayout->addWidget(m_encodingCombo);
         toolLayout->addWidget(refreshButton);
         toolLayout->addWidget(m_filterEdit, 1);
-        toolLayout->addWidget(exportButton);
 
         m_tableWidget = new QTableWidget(this);
         m_tableWidget->setColumnCount(4);
@@ -62,14 +55,14 @@ namespace est
         rootLayout->addWidget(m_tableWidget, 1);
 
         connect(refreshButton, &QPushButton::clicked, this, &StringExtractPanel::refreshResults);
-        connect(exportButton, &QPushButton::clicked, this, &StringExtractPanel::exportResults);
         connect(m_filterEdit, &QLineEdit::textChanged, this, [this](const QString &) { applyFilter(); });
         connect(m_tableWidget, &QTableWidget::cellDoubleClicked, this, [this](int row, int) {
             if (row < 0 || row >= m_entries.size())
             {
                 return;
             }
-            emit offsetActivated(m_entries.at(row).offset);
+            const ExtractedStringEntry &entry = m_entries.at(row);
+            emit offsetActivated(entry.offset, entry.length);
         });
     }
 
@@ -135,8 +128,7 @@ namespace est
             return;
         }
 
-        const ByteFormatService::TextEncoding encoding = ByteFormatService::textEncodingFromKey(
-            m_encodingCombo->currentData().toString());
+        const ByteFormatService::TextEncoding encoding = ByteFormatService::TextEncoding::ASCII;
         m_entries = StringExtractor::extract(m_data, m_minLengthSpinBox->value(), encoding);
 
         m_tableWidget->setRowCount(m_entries.size());

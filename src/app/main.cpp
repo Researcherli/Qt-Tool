@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QIcon>
 #include <QStyleFactory>
 #include <QDebug>
 #include <QStandardPaths>
@@ -10,7 +11,10 @@ void logToFile(QtMsgType type, const QMessageLogContext &context, const QString 
 {
     QByteArray localMsg = msg.toLocal8Bit();
     QFile file("C:\\Users\\19893\\AppData\\Local\\Temp\\opencode\\crash_log.txt");
-    file.open(QIODevice::WriteOnly | QIODevice::Append);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
+    {
+        return;
+    }
     file.write(localMsg);
     file.write("\n");
     file.close();
@@ -30,6 +34,7 @@ int main(int argc, char *argv[])
     app.setApplicationName(QStringLiteral("嵌入式工具"));
     app.setApplicationDisplayName(QStringLiteral("嵌入式工具"));
     app.setApplicationVersion(QStringLiteral("2.0.0"));
+    app.setWindowIcon(QIcon(QStringLiteral(":/icons/app_icon_256.png")));
     app.setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
 
     QFile themeFile(QStringLiteral(":/themes/wood_classic.qss"));

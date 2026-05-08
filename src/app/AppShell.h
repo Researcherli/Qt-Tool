@@ -15,6 +15,7 @@ namespace est
     class BinAnalyzerPage;
     class DataConvertPage;
     class DataBus;
+    class FileComparePage;
     class HomePage;
     class PluginRegistry;
     class PluginLoader;
@@ -70,6 +71,7 @@ namespace est
         HomePage *m_homePage = nullptr;
         SerialAssistantPage *m_serialAssistantPage = nullptr;
         DataConvertPage *m_dataConvertPage = nullptr;
+        FileComparePage *m_fileComparePage = nullptr;
         BinAnalyzerPage *m_binAnalyzerPage = nullptr;
         QLabel *m_readyLabel = nullptr;
         QLabel *m_serialStateLabel = nullptr;

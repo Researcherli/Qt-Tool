@@ -3,6 +3,7 @@
 #include "databus/DataBus.h"
 #include "pages/BinAnalyzerPage.h"
 #include "pages/DataConvertPage.h"
+#include "pages/FileComparePage.h"
 #include "pages/HomePage.h"
 #include "pages/SerialAssistantPage.h"
 #include "plugin/IViewFactory.h"
@@ -11,6 +12,7 @@
 #include "services/RecentRecordManager.h"
 #include "transport/SerialTransport.h"
 #include "transport/TransportRegistry.h"
+#include "widgets/ModuleIconFactory.h"
 #include "widgets/SideNavBar.h"
 
 #include <QAction>
@@ -35,6 +37,7 @@ namespace est
         const QString kHomePageId = QStringLiteral("home");
         const QString kSerialPageId = QStringLiteral("serial");
         const QString kDataConvertPageId = QStringLiteral("data_convert");
+        const QString kFileComparePageId = QStringLiteral("file_compare");
         const QString kBinAnalyzerPageId = QStringLiteral("bin_analyzer");
 
         QString makeTimestampedLog(const QString &text)
@@ -43,9 +46,9 @@ namespace est
                 .arg(QTime::currentTime().toString(QStringLiteral("HH:mm:ss")), text);
         }
 
-        QIcon standardIcon(QStyle::StandardPixmap pixmap)
+        QIcon moduleIcon(const QString &type)
         {
-            return QApplication::style()->standardIcon(pixmap);
+            return QIcon(makeModuleIconPixmap(type, 48));
         }
 
     } // namespace
@@ -125,13 +128,15 @@ namespace est
 
         m_sideNavBar = new SideNavBar(central);
         m_sideNavBar->addNavigationItem(kHomePageId, tr("首页"),
-                                         standardIcon(QStyle::SP_DesktopIcon));
+                                         QIcon(makeHomeIconPixmap(48)));
         m_sideNavBar->addNavigationItem(kSerialPageId, tr("串口工具"),
-                                         standardIcon(QStyle::SP_DriveNetIcon));
+                                         moduleIcon(QStringLiteral("serial")));
         m_sideNavBar->addNavigationItem(kDataConvertPageId, tr("数据转换"),
-                                         standardIcon(QStyle::SP_FileDialogDetailedView));
+                                         moduleIcon(QStringLiteral("convert")));
         m_sideNavBar->addNavigationItem(kBinAnalyzerPageId, tr("BIN 文件分析"),
-                                         standardIcon(QStyle::SP_FileIcon));
+                                         moduleIcon(QStringLiteral("bin")));
+        m_sideNavBar->addNavigationItem(kFileComparePageId, tr("文件比较"),
+                                         moduleIcon(QStringLiteral("compare")));
 
         m_pageStack = new QStackedWidget(central);
         m_pageStack->setObjectName(QStringLiteral("pageStack"));
@@ -139,11 +144,14 @@ namespace est
         m_homePage = new HomePage(this, central);
         m_serialAssistantPage = new SerialAssistantPage(this, central);
         m_dataConvertPage = new DataConvertPage(central);
+        m_fileComparePage = new FileComparePage(central);
+        m_fileComparePage->setRecentRecordManager(m_recentRecordManager);
         m_binAnalyzerPage = new BinAnalyzerPage(this, central);
 
         m_pageIndexes.insert(kHomePageId, m_pageStack->addWidget(m_homePage));
         m_pageIndexes.insert(kSerialPageId, m_pageStack->addWidget(m_serialAssistantPage));
         m_pageIndexes.insert(kDataConvertPageId, m_pageStack->addWidget(m_dataConvertPage));
+        m_pageIndexes.insert(kFileComparePageId, m_pageStack->addWidget(m_fileComparePage));
         m_pageIndexes.insert(kBinAnalyzerPageId, m_pageStack->addWidget(m_binAnalyzerPage));
 
         layout->addWidget(m_sideNavBar);
@@ -161,6 +169,11 @@ namespace est
                 this, [this]()
             {
                 switchToPage(kDataConvertPageId);
+            });
+        connect(m_homePage, &HomePage::openFileCompareRequested,
+                this, [this]()
+            {
+                switchToPage(kFileComparePageId);
             });
         connect(m_homePage, &HomePage::openBinAnalyzerRequested,
             this, [this]()
@@ -197,7 +210,6 @@ namespace est
                 m_homePage->refreshRecentRecords();
                 }
             });
-
         switchToPage(kHomePageId);
     }
 

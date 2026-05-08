@@ -1,8 +1,13 @@
 #include "databus/DataPacket.h"
+#include "pages/BinAnalyzerPage.h"
+#include "pages/DataConvertPage.h"
+#include "widgets/BinAnalyzerWidget.h"
 #include "databus/DataBus.h"
 #include "pages/SerialAssistantPage.h"
 #include "plugin/ICore.h"
+#include "widgets/HexViewerWidget.h"
 #include "widgets/QuickCommandPanel.h"
+#include "widgets/StringExtractPanel.h"
 #include "widgets/DataConvertWidget.h"
 #include "widgets/SerialReceiveView.h"
 #include "widgets/SerialSendPanel.h"
@@ -22,12 +27,14 @@
 #include <QDir>
 #include <QFile>
 #include <QPlainTextEdit>
+#include <QTableWidget>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSignalSpy>
+#include <QSplitter>
 #include <QSpinBox>
 #include <QStandardPaths>
 #include <QTextBlock>
@@ -1024,6 +1031,258 @@ private slots:
         QCOMPARE(hashes.value(QStringLiteral("SHA-1")), QStringLiteral("A9993E364706816ABA3E25717850C26C9CD0D89D"));
     }
 
+    void binHexViewerHighlightsMatchingBytes()
+    {
+        HexViewerWidget viewer;
+        viewer.setData(QByteArray::fromHex("4A 43 58 58 00 4A 43 58 58"));
+
+        viewer.highlightMatches({0, 5}, 5);
+
+        auto *textEdit = viewer.findChild<QPlainTextEdit *>();
+        QVERIFY(textEdit != nullptr);
+        QVERIFY(textEdit->extraSelections().size() >= 2);
+
+        bool hasCurrentByteHighlight = false;
+        for (const QTextEdit::ExtraSelection &selection : textEdit->extraSelections())
+        {
+            if (selection.cursor.selectedText() == QStringLiteral("4A")
+                && selection.format.foreground().color() == QColor(QStringLiteral("#FFFFFF")))
+            {
+                hasCurrentByteHighlight = true;
+            }
+        }
+        QVERIFY(hasCurrentByteHighlight);
+    }
+
+    void binHexViewerShowsFileOverviewStrip()
+    {
+        HexViewerWidget viewer;
+        viewer.setData(QByteArray::fromHex("00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"));
+
+        auto *overview = viewer.findChild<QWidget *>(QStringLiteral("hexFileOverview"));
+
+        QVERIFY(overview != nullptr);
+        QVERIFY(overview->minimumWidth() >= 22);
+        QVERIFY(overview->maximumWidth() <= 28);
+    }
+
+    void binHexViewerOverviewClickMovesCurrentOffset()
+    {
+        HexViewerWidget viewer;
+        QByteArray data;
+        data.resize(256);
+        for (int index = 0; index < data.size(); ++index)
+        {
+            data[index] = static_cast<char>(index);
+        }
+        viewer.setData(data);
+        viewer.resize(760, 360);
+        viewer.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&viewer));
+        QApplication::processEvents();
+
+        QSignalSpy spy(&viewer, &HexViewerWidget::offsetChanged);
+        auto *overview = viewer.findChild<QWidget *>(QStringLiteral("hexFileOverview"));
+        QVERIFY(overview != nullptr);
+
+        QTest::mouseClick(overview,
+                          Qt::LeftButton,
+                          Qt::NoModifier,
+                          QPoint(overview->width() / 2, overview->height() - 4));
+
+        QVERIFY(spy.count() > 0);
+        QVERIFY(spy.last().at(0).toLongLong() >= 220);
+    }
+
+    void binHexViewerHighlightsAllSearchResultRanges()
+    {
+        HexViewerWidget viewer;
+        viewer.setData(QByteArrayLiteral("JCXX----JCXX"));
+
+        viewer.highlightMatches({0, 8}, 0, 4);
+
+        auto *textEdit = viewer.findChild<QPlainTextEdit *>();
+        QVERIFY(textEdit != nullptr);
+
+        int highlightedSearchHexBytes = 0;
+        int highlightedAsciiRanges = 0;
+        for (const QTextEdit::ExtraSelection &selection : textEdit->extraSelections())
+        {
+            if (selection.format.background().color() == QColor(QStringLiteral("#FFF3B0"))
+                || selection.format.background().color() == QColor(QStringLiteral("#2F7FB5")))
+            {
+                const QString selectedText = selection.cursor.selectedText();
+                if (selectedText == QStringLiteral("4A")
+                    || selectedText == QStringLiteral("43")
+                    || selectedText == QStringLiteral("58"))
+                {
+                    ++highlightedSearchHexBytes;
+                }
+                if (selectedText == QStringLiteral("JCXX"))
+                {
+                    ++highlightedAsciiRanges;
+                }
+            }
+        }
+
+        QVERIFY(highlightedSearchHexBytes >= 8);
+        QCOMPARE(highlightedAsciiRanges, 2);
+    }
+
+    void binHexViewerHighlightsWholeStringRangeInHexAndAscii()
+    {
+        HexViewerWidget viewer;
+        viewer.setData(QByteArrayLiteral("JCXX-test"));
+
+        viewer.highlightRange(0, 4);
+
+        auto *textEdit = viewer.findChild<QPlainTextEdit *>();
+        QVERIFY(textEdit != nullptr);
+
+        int highlightedHexBytes = 0;
+        bool highlightedAsciiText = false;
+        bool currentByteUsesRangeColor = false;
+        for (const QTextEdit::ExtraSelection &selection : textEdit->extraSelections())
+        {
+            if (selection.format.background().color() == QColor(QStringLiteral("#FFB020")))
+            {
+                if (selection.cursor.selectedText() == QStringLiteral("4A")
+                    || selection.cursor.selectedText() == QStringLiteral("43")
+                    || selection.cursor.selectedText() == QStringLiteral("58"))
+                {
+                    ++highlightedHexBytes;
+                }
+                if (selection.cursor.selectedText() == QStringLiteral("JCXX"))
+                {
+                    highlightedAsciiText = true;
+                }
+            }
+            if (selection.cursor.selectedText() == QStringLiteral("4A"))
+            {
+                currentByteUsesRangeColor = selection.format.background().color() == QColor(QStringLiteral("#FFB020"));
+            }
+        }
+
+        QVERIFY(highlightedHexBytes >= 4);
+        QVERIFY(highlightedAsciiText);
+        QVERIFY(currentByteUsesRangeColor);
+    }
+
+    void stringExtractPanelActivatesOffsetAndLengthOnDoubleClick()
+    {
+        StringExtractPanel panel;
+        panel.setData(QByteArrayLiteral("ABCDEF"));
+
+        QSignalSpy spy(&panel, SIGNAL(offsetActivated(qint64,int)));
+        auto *table = panel.findChild<QTableWidget *>();
+        QVERIFY(table != nullptr);
+        QVERIFY(table->rowCount() > 0);
+
+        emit table->cellDoubleClicked(0, 0);
+
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.at(0).at(0).toLongLong(), 0);
+        QCOMPARE(spy.at(0).at(1).toInt(), 6);
+    }
+
+    void stringExtractPanelUsesAsciiOnlyToolbarWithWideFilter()
+    {
+        StringExtractPanel panel;
+
+        QStringList comboTexts;
+        for (QComboBox *combo : panel.findChildren<QComboBox *>())
+        {
+            for (int index = 0; index < combo->count(); ++index)
+            {
+                comboTexts.append(combo->itemText(index));
+            }
+        }
+
+        QStringList buttonTexts;
+        for (QPushButton *button : panel.findChildren<QPushButton *>())
+        {
+            buttonTexts.append(button->text());
+        }
+
+        auto *filterEdit = panel.findChild<QLineEdit *>(QStringLiteral("stringFilterEdit"));
+        QVERIFY(filterEdit != nullptr);
+        QVERIFY(comboTexts.isEmpty());
+        QVERIFY(buttonTexts.contains(QStringLiteral("重新提取")));
+        QVERIFY(!buttonTexts.contains(QStringLiteral("导出")));
+        QVERIFY(filterEdit->minimumWidth() >= 280);
+    }
+
+    void binAnalyzerShowsInspectorAndChecksumAfterLoadingFile()
+    {
+        const QString filePath = QDir::temp().filePath(QStringLiteral("est_bin_analyzer_test.bin"));
+        QFile file(filePath);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write(QByteArray::fromHex("01 02 03 04 00 00 80 3F"));
+        file.close();
+
+        FakeCore core;
+        BinAnalyzerWidget widget(&core);
+        widget.loadFile(filePath);
+
+        auto *inspectorTable = widget.findChild<QTableWidget *>(QStringLiteral("binInspectorTable"));
+        auto *checksumTable = widget.findChild<QTableWidget *>(QStringLiteral("binChecksumTable"));
+        QVERIFY(inspectorTable != nullptr);
+        QVERIFY(checksumTable != nullptr);
+        QVERIFY(inspectorTable->rowCount() >= 10);
+        QVERIFY(checksumTable->rowCount() >= 6);
+
+        bool hasUint32LittleEndian = false;
+        for (int row = 0; row < inspectorTable->rowCount(); ++row)
+        {
+            if (inspectorTable->item(row, 0) != nullptr
+                && inspectorTable->item(row, 0)->text() == QStringLiteral("uint32")
+                && inspectorTable->item(row, 1) != nullptr
+                && inspectorTable->item(row, 1)->text() == QStringLiteral("67305985 (0x04030201)"))
+            {
+                hasUint32LittleEndian = true;
+            }
+        }
+        QVERIFY(hasUint32LittleEndian);
+
+        bool hasCrc32 = false;
+        for (int row = 0; row < checksumTable->rowCount(); ++row)
+        {
+            if (checksumTable->item(row, 0) != nullptr
+                && checksumTable->item(row, 0)->text() == QStringLiteral("CRC-32/IEEE"))
+            {
+                hasCrc32 = true;
+            }
+        }
+        QVERIFY(hasCrc32);
+    }
+
+    void binAnalyzerPageUsesToolAreaWithoutHeaderCopy()
+    {
+        FakeCore core;
+        BinAnalyzerPage page(&core);
+
+        QVERIFY(page.findChild<QLabel *>(QStringLiteral("binAnalyzerTitle")) == nullptr);
+        QVERIFY(page.findChild<QLabel *>(QStringLiteral("binAnalyzerSubtitle")) == nullptr);
+        QVERIFY(page.findChild<BinAnalyzerWidget *>() != nullptr);
+    }
+
+    void binAnalyzerDefaultSplitKeepsHexAndAnalysisReadable()
+    {
+        FakeCore core;
+        BinAnalyzerWidget widget(&core);
+        widget.resize(1240, 700);
+        widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&widget));
+        QApplication::processEvents();
+
+        auto *splitter = widget.findChild<QSplitter *>();
+        QVERIFY(splitter != nullptr);
+        const QList<int> sizes = splitter->sizes();
+        QCOMPARE(sizes.size(), 2);
+        QVERIFY(sizes.at(0) >= 740);
+        QVERIFY(sizes.at(1) >= 440);
+    }
+
     void dataConvertServiceFormatsCArray()
     {
         const QString text = ByteFormatService::formatCArray(QByteArray::fromHex("0102ff"), QStringLiteral("firmware"), 2);
@@ -1070,6 +1329,37 @@ private slots:
         QVERIFY(comboKeys.contains(QStringLiteral("decimal")));
         QVERIFY(widget.findChild<QPlainTextEdit *>(QStringLiteral("convertChecksumResultEdit")) == nullptr);
         QVERIFY(widget.findChild<QWidget *>(QStringLiteral("convertInspectorTable")) == nullptr);
+    }
+
+    void dataConvertPageStartsWithConverterControls()
+    {
+        DataConvertPage page;
+
+        QVERIFY(page.findChild<QLabel *>(QStringLiteral("dataConvertTitle")) == nullptr);
+        QVERIFY(page.findChild<QLabel *>(QStringLiteral("dataConvertSubtitle")) == nullptr);
+        QVERIFY(page.findChild<QWidget *>(QStringLiteral("convertConfigBar")) != nullptr);
+    }
+
+    void dataConvertWidgetUsesTopControlsAndLargeEditors()
+    {
+        DataConvertWidget widget;
+
+        auto *configBar = widget.findChild<QWidget *>(QStringLiteral("convertConfigBar"));
+        auto *presetCombo = widget.findChild<QComboBox *>(QStringLiteral("convertPresetCombo"));
+        auto *inputEdit = widget.findChild<QPlainTextEdit *>(QStringLiteral("convertInputEdit"));
+        auto *outputEdit = widget.findChild<QPlainTextEdit *>(QStringLiteral("convertOutputEdit"));
+        auto *convertButton = widget.findChild<QPushButton *>(QStringLiteral("primaryActionButton"));
+
+        QVERIFY(configBar != nullptr);
+        QVERIFY(presetCombo != nullptr);
+        QVERIFY(inputEdit != nullptr);
+        QVERIFY(outputEdit != nullptr);
+        QVERIFY(convertButton != nullptr);
+        QVERIFY(isAncestorOf(configBar, convertButton));
+        QVERIFY(inputEdit->minimumHeight() >= 420);
+        QVERIFY(outputEdit->minimumHeight() >= 420);
+        QVERIFY(presetCombo->findData(QStringLiteral("text_to_hex")) >= 0);
+        QVERIFY(presetCombo->findData(QStringLiteral("base64_to_hex")) >= 0);
     }
 
     void enabledThemeAndPaintedAssetsUseWhiteBluePalette()

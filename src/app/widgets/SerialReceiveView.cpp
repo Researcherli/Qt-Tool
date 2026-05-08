@@ -282,6 +282,9 @@ namespace est
         m_textEdit->setStyleSheet(QStringLiteral("font-size:20px;"));
         m_textEdit->setReadOnly(true);
         m_textEdit->setPlaceholderText(tr("暂无接收数据，打开串口后开始监听"));
+        // 限制文本框行数，使用 Qt 内置的 setMaximumBlockCount 自动淘汰旧行
+        // 避免手动 deleteChar/removeSelectedText 导致的 QTextDocument 内部结构损坏
+        m_textEdit->setMaximumBlockCount(5000);
         m_fixedFieldHighlighter = new ReceiveFixedFieldHighlighter(m_textEdit->document());
         applyHighlightSettings();
 
@@ -329,14 +332,7 @@ namespace est
             m_entries.removeFirst();
         }
 
-        // 限制文本框行数
-        if (m_textEdit->blockCount() > kMaxEntries) {
-             QTextCursor cursor = m_textEdit->textCursor();
-             cursor.movePosition(QTextCursor::Start);
-             cursor.select(QTextCursor::BlockUnderCursor);
-             cursor.removeSelectedText();
-             cursor.deleteChar(); // 删除换行符
-        }
+        // 文本框行数限制已由 setMaximumBlockCount(5000) 自动管理，无需手动删除
 
         const bool autoScroll = m_autoScrollCheckBox->isChecked();
         const int previousScrollPosition = m_textEdit->verticalScrollBar()->value();

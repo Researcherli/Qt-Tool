@@ -11,6 +11,7 @@
 #include <QListView>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <QTimer>
 #include <QVBoxLayout>
 
 namespace est
@@ -29,9 +30,10 @@ namespace est
 
             void showPopup() override
             {
-                // Trigger refresh by sending custom event or casting parent
+                // 延迟触发刷新，避免在 showPopup 同步调用链中执行 QSerialPortInfo::availablePorts()
+                // （该操作可能在 USB-串口驱动异常时崩溃，且同步调用会阻塞下拉框渲染）
                 if (auto* bar = qobject_cast<SerialConfigBar*>(parent())) {
-                    emit bar->refreshRequested();
+                    QTimer::singleShot(0, bar, &SerialConfigBar::refreshRequested);
                 }
                 QComboBox::showPopup();
 

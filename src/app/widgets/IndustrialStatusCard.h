@@ -15,10 +15,14 @@ namespace est
         Q_OBJECT
 
     public:
+        enum State { Idle, Loading, Success, Warning, Error };
+        Q_ENUM(State)
+
         explicit IndustrialStatusCard(const QString &title, QWidget *parent = nullptr);
 
         void setStatus(const QString &text, const QColor &color);
         void setDetail(const QString &text);
+        void setState(State state);
 
     private:
         QFrame *m_indicator = nullptr;

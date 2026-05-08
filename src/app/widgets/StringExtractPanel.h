@@ -25,7 +25,7 @@ namespace est
         void exportResults();
 
     signals:
-        void offsetActivated(qint64 offset);
+        void offsetActivated(qint64 offset, int length);
         void statusMessageGenerated(const QString &text);
 
     private:
@@ -35,7 +35,6 @@ namespace est
         QByteArray m_data;
         QList<ExtractedStringEntry> m_entries;
         QSpinBox *m_minLengthSpinBox = nullptr;
-        QComboBox *m_encodingCombo = nullptr;
         QLineEdit *m_filterEdit = nullptr;
         QTableWidget *m_tableWidget = nullptr;
     };

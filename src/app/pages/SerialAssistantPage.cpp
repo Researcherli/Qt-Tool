@@ -11,6 +11,8 @@
 #include "widgets/SerialReceiveView.h"
 #include "widgets/SerialSendPanel.h"
 
+#include "pages/SerialPortEnumerator.h"
+
 #include <QDateTime>
 #include <QHBoxLayout>
 #include <QMessageBox>
@@ -96,7 +98,8 @@ namespace est
 
         loadSettings();
         m_receiveView->setTimestampVisible(m_sendPanel->timestampEnabled());
-        refreshPorts();
+        // 延迟串口枚举到事件循环启动后，避免构造时因串口驱动状态异常引发崩溃
+        QTimer::singleShot(0, this, &SerialAssistantPage::refreshPorts);
         m_configBar->setConnectionState(false, tr("未连接"), QStringLiteral("disconnected"));
         emit transferStatsChanged(m_txBytes, m_rxBytes);
 
@@ -146,7 +149,7 @@ namespace est
 
     void SerialAssistantPage::refreshPorts()
     {
-        const QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
+        const QList<QSerialPortInfo> ports = safeAvailablePorts();
         QList<QPair<QString, QString>> items;
         items.reserve(ports.size());
 

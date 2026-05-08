@@ -15,6 +15,8 @@ set(CORE_SOURCES
     services/DataConvertService.cpp
     services/RecentRecordManager.cpp
     services/StringExtractor.cpp
+    # utils/algo
+    FileCompareEngine.cpp
     # transport
     transport/TransportRegistry.cpp
     transport/SerialTransport.cpp
@@ -40,6 +42,8 @@ set(CORE_HEADERS
     services/DataConvertService.h
     services/RecentRecordManager.h
     services/StringExtractor.h
+    # utils/algo
+    FileCompareEngine.h
     # transport
     transport/ITransport.h
     transport/SerialTransport.h
@@ -57,5 +61,5 @@ target_link_libraries(est_core
     PUBLIC
         Qt6::Core
         Qt6::Widgets
-    Qt6::SerialPort
+        Qt6::SerialPort
 )

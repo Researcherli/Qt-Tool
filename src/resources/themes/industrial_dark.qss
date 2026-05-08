@@ -259,6 +259,74 @@ QWidget#quickCommandPanel QPushButton {
     padding: 6px 8px;
 }
 
+QFrame#compareToolbar,
+QFrame#compareSummaryFrame,
+QFrame#compareFilePanel,
+QFrame#compareEmptyState {
+    background-color: #FFFFFF;
+    border: 1px solid #D6E3EF;
+    border-radius: 8px;
+}
+
+QFrame#compareWorkspace {
+    background-color: transparent;
+    border: none;
+}
+
+QFrame#compareFileHeader {
+    background-color: #F5FAFE;
+    border: none;
+    border-bottom: 1px solid #D6E3EF;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+QLabel#compareSummaryLabel,
+QLabel#compareLeftFileLabel,
+QLabel#compareRightFileLabel {
+    color: #173E63;
+    font-weight: 700;
+}
+
+QLabel#compareSummaryLabel {
+    font-size: 14px;
+}
+
+QLabel#compareFilePathLabel {
+    color: #5F7890;
+    font-size: 12px;
+}
+
+QLabel#compareLegendAdded,
+QLabel#compareLegendRemoved,
+QLabel#compareLegendModified {
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-weight: 700;
+    min-width: 44px;
+}
+
+QLabel#compareLegendAdded {
+    background-color: #DDF7E8;
+    color: #1F6B44;
+}
+
+QLabel#compareLegendRemoved {
+    background-color: #FCE1E1;
+    color: #9A2B2B;
+}
+
+QLabel#compareLegendModified {
+    background-color: #FFF3B0;
+    color: #8A6500;
+}
+
+QPlainTextEdit#compareLeftEditor,
+QPlainTextEdit#compareRightEditor {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
 QLabel#statusCardValue {
     color: #173E63;
     font-size: 18px;
@@ -275,7 +343,8 @@ QTextEdit,
 QLineEdit,
 QComboBox,
 QSpinBox,
-QListWidget {
+QListWidget,
+QTableWidget {
     background-color: #FFFFFF;
     border: 1px solid #C9DAE8;
     border-radius: 4px;
@@ -351,6 +420,14 @@ QComboBox QAbstractItemView {
     border: 1px solid #C9DAE8;
     selection-background-color: #DCECF8;
     selection-color: #173E63;
+}
+
+QHeaderView::section {
+    background-color: #EAF2FA;
+    border: 1px solid #C9DAE8;
+    color: #173E63;
+    font-weight: 700;
+    padding: 6px 8px;
 }
 
 QCheckBox {
@@ -429,7 +506,6 @@ QCheckBox::indicator {
 QCheckBox::indicator:checked {
     background-color: #2F7FB5;
     border-color: #2F7FB5;
-    image: url(:/icons/check.png);
 }
 
 QScrollBar:vertical {

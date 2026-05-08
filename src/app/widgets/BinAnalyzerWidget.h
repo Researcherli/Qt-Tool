@@ -2,12 +2,15 @@
 #define EST_BINANALYZERWIDGET_H
 
 #include "services/BinFileLoader.h"
+#include "services/BinSearchService.h"
 
 #include <QVector>
 #include <QWidget>
 
 class QLineEdit;
 class QLabel;
+class QComboBox;
+class QTableWidget;
 
 namespace est
 {
@@ -22,10 +25,15 @@ namespace est
     {
         Q_OBJECT
 
-    public:
+public:
         explicit BinAnalyzerWidget(ICore *core, QWidget *parent = nullptr);
 
         void openFileDialog();
+        void loadFile(const QString &filePath);
+
+    protected:
+        void dragEnterEvent(QDragEnterEvent *event) override;
+        void dropEvent(QDropEvent *event) override;
 
     signals:
         void currentFileChanged(const QString &fileText);
@@ -33,13 +41,16 @@ namespace est
         void recentRecordsChanged();
 
     private:
-        void loadFile(const QString &filePath);
         void reloadFile();
         void exportHexText();
         void runSearch();
         void goToSearchResult(int step);
         void clearSearch();
         void updateDetail(qint64 offset, uchar byteValue, const QString &asciiText);
+        void updateInspector(qint64 offset);
+        void updateChecksum();
+        int searchMatchLength(const BinSearchService::SearchQuery &query) const;
+        QTableWidget *createKeyValueTable(const QString &objectName) const;
         QString fileSizeText(qint64 byteCount) const;
 
         BinFileLoader m_loader;
@@ -49,8 +60,13 @@ namespace est
         QLineEdit *m_filePathEdit = nullptr;
         QLabel *m_fileSizeLabel = nullptr;
         QLabel *m_detailLabel = nullptr;
+        QComboBox *m_endianCombo = nullptr;
+        QTableWidget *m_inspectorTable = nullptr;
+        QTableWidget *m_checksumTable = nullptr;
         QVector<qsizetype> m_searchResults;
         int m_currentSearchIndex = -1;
+        int m_searchMatchLength = 1;
+        qint64 m_currentOffset = -1;
         RecentRecordManager *m_recentRecordManager = nullptr;
     };
 

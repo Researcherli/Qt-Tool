@@ -58,4 +58,25 @@ namespace est
         m_detailLabel->setText(text);
     }
 
+    void IndustrialStatusCard::setState(IndustrialStatusCard::State state)
+    {
+        switch (state) {
+        case Idle:
+            setStatus(tr("未选择"), QColor(QStringLiteral("#7A8FA0")));
+            break;
+        case Loading:
+            setStatus(tr("加载中"), QColor(QStringLiteral("#2F7FB5")));
+            break;
+        case Success:
+            setStatus(tr("无差异"), QColor(QStringLiteral("#2C8C5A")));
+            break;
+        case Warning:
+            setStatus(tr("发现差异"), QColor(QStringLiteral("#B8801E")));
+            break;
+        case Error:
+            setStatus(tr("错误"), QColor(QStringLiteral("#C0392B")));
+            break;
+        }
+    }
+
 } // namespace est

@@ -2,7 +2,6 @@
 
 #include "widgets/BinAnalyzerWidget.h"
 
-#include <QLabel>
 #include <QVBoxLayout>
 
 namespace est
@@ -15,21 +14,10 @@ namespace est
 
         auto *rootLayout = new QVBoxLayout(this);
         rootLayout->setContentsMargins(24, 24, 24, 24);
-        rootLayout->setSpacing(16);
-
-        auto *titleLabel = new QLabel(tr("BIN 文件分析"), this);
-        titleLabel->setObjectName(QStringLiteral("binAnalyzerTitle"));
-
-        auto *subtitleLabel = new QLabel(
-            tr("提供 BIN 文件导入、HEX 查看、搜索与字符串提取。"),
-            this);
-        subtitleLabel->setObjectName(QStringLiteral("binAnalyzerSubtitle"));
-        subtitleLabel->setWordWrap(true);
+        rootLayout->setSpacing(0);
 
         m_binAnalyzerWidget = new BinAnalyzerWidget(core, this);
 
-        rootLayout->addWidget(titleLabel);
-        rootLayout->addWidget(subtitleLabel);
         rootLayout->addWidget(m_binAnalyzerWidget, 1);
 
         connect(m_binAnalyzerWidget, &BinAnalyzerWidget::currentFileChanged,

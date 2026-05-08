@@ -24,6 +24,7 @@ namespace est
     signals:
         void openSerialAssistantRequested();
         void openDataConvertRequested();
+        void openFileCompareRequested();
         void openBinAnalyzerRequested();
 
     private:

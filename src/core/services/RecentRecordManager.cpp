@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMutexLocker>
 #include <QStandardPaths>
 
 namespace est
@@ -69,16 +70,19 @@ namespace est
 
     QVariantList RecentRecordManager::recentSerialConfigs() const
     {
+        QMutexLocker locker(&m_mutex);
         return recordsForKey(QStringLiteral("serialProfiles"));
     }
 
     QVariantList RecentRecordManager::recentBinFiles() const
     {
+        QMutexLocker locker(&m_mutex);
         return recordsForKey(QStringLiteral("binFiles"));
     }
 
     QVariantList RecentRecordManager::recentSearchKeywords() const
     {
+        QMutexLocker locker(&m_mutex);
         return recordsForKey(QStringLiteral("searchKeywords"));
     }
 
@@ -86,6 +90,7 @@ namespace est
                                                int baudRate,
                                                const QString &dataFormat)
     {
+        QMutexLocker locker(&m_mutex);
         QVariantMap record;
         record.insert(QStringLiteral("portName"), portName);
         record.insert(QStringLiteral("baudRate"), baudRate);
@@ -97,6 +102,7 @@ namespace est
     void RecentRecordManager::addBinFile(const QString &filePath,
                                          qint64 fileSize)
     {
+        QMutexLocker locker(&m_mutex);
         QFileInfo info(filePath);
         QVariantMap record;
         record.insert(QStringLiteral("fileName"), info.fileName());
@@ -109,6 +115,7 @@ namespace est
     void RecentRecordManager::addSearchKeyword(const QString &keyword,
                                                const QString &type)
     {
+        QMutexLocker locker(&m_mutex);
         QVariantMap record;
         record.insert(QStringLiteral("keyword"), keyword);
         record.insert(QStringLiteral("type"), type);
@@ -116,8 +123,32 @@ namespace est
         appendRecord(QStringLiteral("searchKeywords"), record);
     }
 
+    QVariantList RecentRecordManager::recentComparePairs() const
+    {
+        QMutexLocker locker(&m_mutex);
+        return recordsForKey(QStringLiteral("comparePairs"));
+    }
+
+    void RecentRecordManager::addComparePair(const QString &leftPath, const QString &rightPath,
+                                              qint64 leftSize, qint64 rightSize)
+    {
+        QMutexLocker locker(&m_mutex);
+        QFileInfo leftInfo(leftPath);
+        QFileInfo rightInfo(rightPath);
+        QVariantMap record;
+        record.insert(QStringLiteral("leftPath"), leftPath);
+        record.insert(QStringLiteral("rightPath"), rightPath);
+        record.insert(QStringLiteral("leftName"), leftInfo.fileName());
+        record.insert(QStringLiteral("rightName"), rightInfo.fileName());
+        record.insert(QStringLiteral("leftSize"), leftSize);
+        record.insert(QStringLiteral("rightSize"), rightSize);
+        record.insert(QStringLiteral("timestamp"), QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm")));
+        appendCompareRecord(record);
+    }
+
     void RecentRecordManager::clearAll()
     {
+        QMutexLocker locker(&m_mutex);
         saveRoot(QJsonObject());
     }
 
@@ -145,6 +176,36 @@ namespace est
                                           && object.value(QStringLiteral("keyword")).toString() == record.value(QStringLiteral("keyword")).toString()
                                           && object.value(QStringLiteral("type")).toString() == record.value(QStringLiteral("type")).toString();
             if (!duplicatedSerial && !duplicatedFile && !duplicatedSearch)
+            {
+                filtered.append(object);
+            }
+        }
+
+        filtered.prepend(QJsonObject::fromVariantMap(record));
+        while (filtered.size() > 10)
+        {
+            filtered.removeLast();
+        }
+
+        root.insert(key, filtered);
+        saveRoot(root);
+    }
+
+    void RecentRecordManager::appendCompareRecord(const QVariantMap &record)
+    {
+        const QString key = QStringLiteral("comparePairs");
+        QJsonObject root = loadRoot();
+        QJsonArray array = root.value(key).toArray();
+
+        QJsonArray filtered;
+        const QString newLeftPath = record.value(QStringLiteral("leftPath")).toString();
+        const QString newRightPath = record.value(QStringLiteral("rightPath")).toString();
+        for (const QJsonValue &value : array)
+        {
+            const QJsonObject object = value.toObject();
+            const bool duplicated = object.value(QStringLiteral("leftPath")).toString() == newLeftPath
+                                    && object.value(QStringLiteral("rightPath")).toString() == newRightPath;
+            if (!duplicated)
             {
                 filtered.append(object);
             }

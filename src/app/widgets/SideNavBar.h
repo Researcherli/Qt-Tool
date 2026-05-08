@@ -55,9 +55,9 @@ namespace est
         QLabel *m_titleLabel = nullptr;
         QLabel *m_versionLabel = nullptr;
         QVBoxLayout *m_navLayout = nullptr;
-        bool m_expanded = false;
+    bool m_expanded = true;  // 初始 true，确保构造函数 setExpanded(false) 生效
 
-        int m_collapsedWidth = 72;
+    int m_collapsedWidth = 72;
         int m_expandedWidth = 200;
 
         QPropertyAnimation *m_expandAnimation = nullptr;
@@ -95,8 +95,8 @@ namespace est
     private:
         NavItem m_item;
         QIcon m_icon;
-        bool m_expanded = false;
-        bool m_selected = false;
+    bool m_expanded = true;  // 初始 true，确保 setExpanded(false) 生效
+    bool m_selected = false;
         bool m_hovered = false;
         bool m_pressed = false;
     };

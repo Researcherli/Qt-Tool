@@ -33,53 +33,88 @@ namespace est
         rootLayout->setContentsMargins(0, 0, 0, 0);
         rootLayout->setSpacing(12);
 
-        auto *configGroup = new QGroupBox(tr("转换配置"), this);
-        auto *configLayout = new QGridLayout(configGroup);
+        auto *configBar = new QWidget(this);
+        configBar->setObjectName(QStringLiteral("convertConfigBar"));
+        auto *configLayout = new QGridLayout(configBar);
+        configLayout->setContentsMargins(0, 0, 0, 0);
+        configLayout->setHorizontalSpacing(10);
+        configLayout->setVerticalSpacing(8);
 
-        m_inputTypeCombo = new QComboBox(configGroup);
+        auto *presetCombo = new QComboBox(configBar);
+        presetCombo->setObjectName(QStringLiteral("convertPresetCombo"));
+        presetCombo->addItem(tr("自定义"), QString());
+        presetCombo->addItem(tr("文本 -> HEX"), QStringLiteral("text_to_hex"));
+        presetCombo->addItem(tr("HEX -> 文本"), QStringLiteral("hex_to_text"));
+        presetCombo->addItem(tr("HEX -> Base64"), QStringLiteral("hex_to_base64"));
+        presetCombo->addItem(tr("Base64 -> HEX"), QStringLiteral("base64_to_hex"));
+        presetCombo->addItem(tr("十进制 -> HEX"), QStringLiteral("decimal_to_hex"));
+        presetCombo->addItem(tr("HEX -> 十进制"), QStringLiteral("hex_to_decimal"));
+
+        m_inputTypeCombo = new QComboBox(configBar);
         m_inputTypeCombo->addItem(tr("字符串"), QStringLiteral("string"));
         m_inputTypeCombo->addItem(QStringLiteral("HEX"), QStringLiteral("hex"));
         m_inputTypeCombo->addItem(tr("二进制"), QStringLiteral("binary"));
         m_inputTypeCombo->addItem(QStringLiteral("Base64"), QStringLiteral("base64"));
         m_inputTypeCombo->addItem(tr("十进制字节"), QStringLiteral("decimal"));
 
-        m_outputTypeCombo = new QComboBox(configGroup);
+        m_outputTypeCombo = new QComboBox(configBar);
         m_outputTypeCombo->addItem(QStringLiteral("HEX"), QStringLiteral("hex"));
         m_outputTypeCombo->addItem(tr("字符串"), QStringLiteral("string"));
         m_outputTypeCombo->addItem(tr("二进制"), QStringLiteral("binary"));
         m_outputTypeCombo->addItem(QStringLiteral("Base64"), QStringLiteral("base64"));
         m_outputTypeCombo->addItem(tr("十进制字节"), QStringLiteral("decimal"));
 
-        m_encodingCombo = new QComboBox(configGroup);
+        m_encodingCombo = new QComboBox(configBar);
         m_encodingCombo->addItem(QStringLiteral("UTF-8"), QStringLiteral("utf8"));
         m_encodingCombo->addItem(QStringLiteral("ASCII"), QStringLiteral("ascii"));
         m_encodingCombo->addItem(QStringLiteral("GBK"), QStringLiteral("gbk"));
         m_encodingCombo->addItem(QStringLiteral("UTF-16 LE"), QStringLiteral("utf16le"));
         m_encodingCombo->addItem(QStringLiteral("UTF-16 BE"), QStringLiteral("utf16be"));
 
-        m_separatorCombo = new QComboBox(configGroup);
+        m_separatorCombo = new QComboBox(configBar);
         m_separatorCombo->addItem(tr("空格"), QStringLiteral("space"));
         m_separatorCombo->addItem(tr("无分隔"), QStringLiteral("none"));
         m_separatorCombo->addItem(QStringLiteral("0x 前缀"), QStringLiteral("0x"));
         m_separatorCombo->addItem(tr("逗号"), QStringLiteral("comma"));
 
-        m_caseCombo = new QComboBox(configGroup);
+        m_caseCombo = new QComboBox(configBar);
         m_caseCombo->addItem(tr("大写"), true);
         m_caseCombo->addItem(tr("小写"), false);
 
-        m_autoConvertCheckBox = new QCheckBox(tr("自动转换"), configGroup);
+        m_autoConvertCheckBox = new QCheckBox(tr("自动转换"), configBar);
 
-        configLayout->addWidget(new QLabel(tr("输入类型"), configGroup), 0, 0);
-        configLayout->addWidget(m_inputTypeCombo, 0, 1);
-        configLayout->addWidget(new QLabel(tr("输出类型"), configGroup), 0, 2);
-        configLayout->addWidget(m_outputTypeCombo, 0, 3);
-        configLayout->addWidget(new QLabel(tr("编码"), configGroup), 1, 0);
-        configLayout->addWidget(m_encodingCombo, 1, 1);
-        configLayout->addWidget(new QLabel(tr("HEX 分隔"), configGroup), 1, 2);
-        configLayout->addWidget(m_separatorCombo, 1, 3);
-        configLayout->addWidget(new QLabel(tr("大小写"), configGroup), 2, 0);
-        configLayout->addWidget(m_caseCombo, 2, 1);
-        configLayout->addWidget(m_autoConvertCheckBox, 2, 3);
+        auto *convertButton = new QPushButton(tr("转换"), configBar);
+        convertButton->setObjectName(QStringLiteral("primaryActionButton"));
+        auto *clearAllButton = new QPushButton(tr("清空全部"), configBar);
+        auto *swapButton = new QPushButton(tr("交换输入输出"), configBar);
+        auto *exampleButton = new QPushButton(tr("示例"), configBar);
+        auto *actionLayout = new QHBoxLayout();
+        actionLayout->setContentsMargins(0, 0, 0, 0);
+        actionLayout->setSpacing(8);
+        actionLayout->addWidget(convertButton);
+        actionLayout->addWidget(clearAllButton);
+        actionLayout->addWidget(swapButton);
+        actionLayout->addWidget(exampleButton);
+        actionLayout->addStretch(1);
+
+        configLayout->addWidget(new QLabel(tr("常用转换"), configBar), 0, 0);
+        configLayout->addWidget(presetCombo, 0, 1);
+        configLayout->addWidget(new QLabel(tr("输入格式"), configBar), 0, 2);
+        configLayout->addWidget(m_inputTypeCombo, 0, 3);
+        configLayout->addWidget(new QLabel(tr("输出格式"), configBar), 0, 4);
+        configLayout->addWidget(m_outputTypeCombo, 0, 5);
+        configLayout->addWidget(new QLabel(tr("编码"), configBar), 0, 6);
+        configLayout->addWidget(m_encodingCombo, 0, 7);
+        configLayout->addWidget(new QLabel(tr("HEX 分隔"), configBar), 1, 0);
+        configLayout->addWidget(m_separatorCombo, 1, 1);
+        configLayout->addWidget(new QLabel(tr("HEX 大小写"), configBar), 1, 2);
+        configLayout->addWidget(m_caseCombo, 1, 3);
+        configLayout->addWidget(m_autoConvertCheckBox, 1, 4);
+        configLayout->addLayout(actionLayout, 1, 5, 1, 3);
+        configLayout->setColumnStretch(1, 1);
+        configLayout->setColumnStretch(3, 1);
+        configLayout->setColumnStretch(5, 1);
+        configLayout->setColumnStretch(7, 1);
 
         auto *editLayout = new QHBoxLayout();
         editLayout->setSpacing(12);
@@ -87,6 +122,8 @@ namespace est
         auto *inputGroup = new QGroupBox(tr("原始数据"), this);
         auto *inputLayout = new QVBoxLayout(inputGroup);
         m_inputEdit = new QPlainTextEdit(inputGroup);
+        m_inputEdit->setObjectName(QStringLiteral("convertInputEdit"));
+        m_inputEdit->setMinimumHeight(460);
         m_inputEdit->setPlaceholderText(tr("输入要转换的内容"));
         m_inputLengthLabel = new QLabel(tr("输入长度：0"), inputGroup);
         auto *pasteButton = new QPushButton(tr("粘贴"), inputGroup);
@@ -102,6 +139,8 @@ namespace est
         auto *outputGroup = new QGroupBox(tr("转换结果"), this);
         auto *outputLayout = new QVBoxLayout(outputGroup);
         m_outputEdit = new QPlainTextEdit(outputGroup);
+        m_outputEdit->setObjectName(QStringLiteral("convertOutputEdit"));
+        m_outputEdit->setMinimumHeight(460);
         m_outputEdit->setReadOnly(true);
         m_outputEdit->setPlaceholderText(tr("点击“转换”查看结果"));
         m_outputLengthLabel = new QLabel(tr("输出长度：0"), outputGroup);
@@ -118,25 +157,53 @@ namespace est
         editLayout->addWidget(inputGroup, 1);
         editLayout->addWidget(outputGroup, 1);
 
-        auto *actionLayout = new QHBoxLayout();
-        auto *convertButton = new QPushButton(tr("转换"), this);
-        convertButton->setObjectName(QStringLiteral("primaryActionButton"));
-        auto *clearAllButton = new QPushButton(tr("清空全部"), this);
-        auto *swapButton = new QPushButton(tr("交换输入输出"), this);
-        auto *exampleButton = new QPushButton(tr("示例"), this);
-        actionLayout->addWidget(convertButton);
-        actionLayout->addWidget(clearAllButton);
-        actionLayout->addWidget(swapButton);
-        actionLayout->addWidget(exampleButton);
-        actionLayout->addStretch(1);
-
-        rootLayout->addWidget(configGroup);
+        rootLayout->addWidget(configBar);
         rootLayout->addLayout(editLayout, 1);
-        rootLayout->addLayout(actionLayout);
 
         connect(convertButton, &QPushButton::clicked, this, &DataConvertWidget::performConversion);
         connect(clearAllButton, &QPushButton::clicked, this, &DataConvertWidget::clearAll);
         connect(swapButton, &QPushButton::clicked, this, &DataConvertWidget::swapInputOutput);
+        connect(presetCombo, &QComboBox::currentIndexChanged, this, [this, presetCombo]() {
+            const QString preset = presetCombo->currentData().toString();
+            auto setFormat = [](QComboBox *combo, const QString &formatKey) {
+                const int index = combo->findData(formatKey);
+                if (index >= 0)
+                {
+                    combo->setCurrentIndex(index);
+                }
+            };
+
+            if (preset == QStringLiteral("text_to_hex"))
+            {
+                setFormat(m_inputTypeCombo, QStringLiteral("string"));
+                setFormat(m_outputTypeCombo, QStringLiteral("hex"));
+            }
+            else if (preset == QStringLiteral("hex_to_text"))
+            {
+                setFormat(m_inputTypeCombo, QStringLiteral("hex"));
+                setFormat(m_outputTypeCombo, QStringLiteral("string"));
+            }
+            else if (preset == QStringLiteral("hex_to_base64"))
+            {
+                setFormat(m_inputTypeCombo, QStringLiteral("hex"));
+                setFormat(m_outputTypeCombo, QStringLiteral("base64"));
+            }
+            else if (preset == QStringLiteral("base64_to_hex"))
+            {
+                setFormat(m_inputTypeCombo, QStringLiteral("base64"));
+                setFormat(m_outputTypeCombo, QStringLiteral("hex"));
+            }
+            else if (preset == QStringLiteral("decimal_to_hex"))
+            {
+                setFormat(m_inputTypeCombo, QStringLiteral("decimal"));
+                setFormat(m_outputTypeCombo, QStringLiteral("hex"));
+            }
+            else if (preset == QStringLiteral("hex_to_decimal"))
+            {
+                setFormat(m_inputTypeCombo, QStringLiteral("hex"));
+                setFormat(m_outputTypeCombo, QStringLiteral("decimal"));
+            }
+        });
         connect(exampleButton, &QPushButton::clicked, this, [this]() {
             m_inputEdit->setPlainText(QStringLiteral("JCXX_IDENTITY"));
             performConversion();

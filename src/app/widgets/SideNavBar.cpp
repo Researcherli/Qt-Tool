@@ -12,7 +12,6 @@
 #include <QPixmap>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <QtMath>
 
 namespace est
 {
@@ -26,30 +25,58 @@ namespace est
             QPainter p(&pixmap);
             p.setRenderHint(QPainter::Antialiasing);
 
-            const QRectF body(size * 0.18, size * 0.18, size * 0.64, size * 0.64);
-            QPainterPath bodyPath;
-            bodyPath.addRoundedRect(body, size * 0.12, size * 0.12);
-            p.fillPath(bodyPath, QColor(QStringLiteral("#2F7FB5")));
-            p.setPen(QPen(QColor(QStringLiteral("#173E63")), qMax(1, size / 18)));
-            p.drawPath(bodyPath);
+            const QRectF board(size * 0.12, size * 0.16, size * 0.76, size * 0.68);
+            QPainterPath boardPath;
+            boardPath.addRoundedRect(board, size * 0.09, size * 0.09);
+            p.fillPath(boardPath, QColor(QStringLiteral("#DCECF8")));
 
-            p.setPen(QPen(QColor(QStringLiteral("#DCECF8")), qMax(1, size / 18), Qt::SolidLine, Qt::RoundCap));
-            const int pinStart = qRound(size * 0.08);
-            const int pinEnd = qRound(size * 0.18);
-            const int pinOutStart = qRound(size * 0.82);
-            const int pinOutEnd = qRound(size * 0.92);
-            for (int i = 0; i < 3; ++i)
+            p.setPen(QPen(QColor(QStringLiteral("#173E63")), qMax(2, size / 24)));
+            p.drawPath(boardPath);
+
+            p.setPen(QPen(QColor(QStringLiteral("#2F7FB5")), qMax(2, size / 24), Qt::SolidLine, Qt::RoundCap));
+            const qreal pinIn = size * 0.12;
+            const qreal pinOut = size * 0.04;
+            const qreal pinRightIn = size * 0.88;
+            const qreal pinRightOut = size * 0.96;
+            for (int i = 0; i < 4; ++i)
             {
-                const int pos = qRound(size * (0.32 + i * 0.18));
-                p.drawLine(pinStart, pos, pinEnd, pos);
-                p.drawLine(pinOutStart, pos, pinOutEnd, pos);
-                p.drawLine(pos, pinStart, pos, pinEnd);
-                p.drawLine(pos, pinOutStart, pos, pinOutEnd);
+                const qreal y = size * (0.28 + i * 0.14);
+                p.drawLine(QPointF(pinOut, y), QPointF(pinIn, y));
+                p.drawLine(QPointF(pinRightIn, y), QPointF(pinRightOut, y));
             }
 
-            p.setPen(QPen(QColor(QStringLiteral("#FFFFFF")), qMax(2, size / 12), Qt::SolidLine, Qt::RoundCap));
-            p.drawLine(QPointF(size * 0.34, size * 0.52), QPointF(size * 0.48, size * 0.64));
-            p.drawLine(QPointF(size * 0.48, size * 0.64), QPointF(size * 0.68, size * 0.38));
+            const qreal pinTop = size * 0.16;
+            const qreal pinTopOut = size * 0.08;
+            const qreal pinBottom = size * 0.84;
+            const qreal pinBottomOut = size * 0.92;
+            for (int i = 0; i < 3; ++i)
+            {
+                const qreal x = size * (0.32 + i * 0.18);
+                p.drawLine(QPointF(x, pinTopOut), QPointF(x, pinTop));
+                p.drawLine(QPointF(x, pinBottom), QPointF(x, pinBottomOut));
+            }
+
+            const QRectF chip(size * 0.26, size * 0.3, size * 0.48, size * 0.4);
+            QPainterPath chipPath;
+            chipPath.addRoundedRect(chip, size * 0.045, size * 0.045);
+            p.fillPath(chipPath, QColor(QStringLiteral("#2F7FB5")));
+            p.setPen(QPen(QColor(QStringLiteral("#173E63")), qMax(2, size / 28)));
+            p.drawPath(chipPath);
+
+            p.setPen(QPen(QColor(QStringLiteral("#FFFFFF")), qMax(2, size / 28), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            QPainterPath signalPath;
+            signalPath.moveTo(size * 0.34, size * 0.53);
+            signalPath.lineTo(size * 0.42, size * 0.53);
+            signalPath.lineTo(size * 0.46, size * 0.43);
+            signalPath.lineTo(size * 0.54, size * 0.62);
+            signalPath.lineTo(size * 0.59, size * 0.49);
+            signalPath.lineTo(size * 0.68, size * 0.49);
+            p.drawPath(signalPath);
+
+            p.setBrush(QColor(QStringLiteral("#FFFFFF")));
+            p.setPen(Qt::NoPen);
+            p.drawEllipse(QPointF(size * 0.34, size * 0.41), size * 0.025, size * 0.025);
+            p.drawEllipse(QPointF(size * 0.66, size * 0.61), size * 0.025, size * 0.025);
 
             return pixmap;
         }
@@ -277,7 +304,11 @@ namespace est
         m_collapseTimer->setInterval(200);
         connect(m_collapseTimer, &QTimer::timeout, this, &SideNavBar::onCollapseTimer);
 
-        setExpanded(false);
+        // 直接设置初始折叠状态（跳过动画，避免启动时过渡闪烁）
+        m_expanded = false;
+        setFixedWidth(m_collapsedWidth);
+        m_titleLabel->setVisible(false);
+        m_versionLabel->setVisible(false);
     }
 
     int SideNavBar::sidebarWidth() const
@@ -309,14 +340,14 @@ namespace est
 
         m_navLayout->addWidget(btn);
 
+        btn->setExpanded(m_expanded);
+
         // 默认选中第一个
         if (m_buttons.size() == 1)
         {
             m_currentButton = btn;
             btn->setSelected(true);
         }
-
-        btn->setExpanded(m_expanded);
     }
 
     void SideNavBar::setCurrentId(const QString &id)

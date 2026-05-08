@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where arm-none-eabi-size *)",
+      "Bash(where arm-none-eabi-gcc *)",
+      "Bash(where arm-none-eabi-nm *)",
+      "Bash(powershell *)",
+      "Bash(cmd.exe *)",
+      "Read(//f/Microsoft Visual Studio/**)",
+      "Read(//f/Microsoft Visual Studio/18/**)",
+      "Bash(cp \"src/core/services/memory/\"*.h \"G:/memory_analyzer_files/src/core/services/memory/\")",
+      "Bash(cp \"src/core/services/memory/\"*.cpp \"G:/memory_analyzer_files/src/core/services/memory/\")",
+      "Bash(cp \"src/core/CMakeLists.txt\" \"G:/memory_analyzer_files/src/core/\")",
+      "Read(//g//**)",
+      "Bash(7z a *)",
+      "Bash(tar -czf memory_analyzer_files.tar.gz memory_analyzer_files/)"
+    ]
+  }
+}
