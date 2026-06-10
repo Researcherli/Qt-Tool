@@ -111,7 +111,6 @@ namespace est
         if (!m_serial->open(QIODevice::ReadWrite))
         {
             emit errorOccurred(tr("打开串口失败：%1").arg(m_serial->errorString()));
-            setState(State::Error);
             setState(State::Disconnected);
             return false;
         }
@@ -141,7 +140,8 @@ namespace est
     {
         if (!m_serial->isOpen() || m_state != State::Connected)
         {
-            emit errorOccurred(tr("串口尚未连接"));
+            qWarning() << "Serial port not open for send on" << m_portName;
+            emit errorOccurred(tr("串口尚未连接：%1").arg(m_portName));
             return false;
         }
 

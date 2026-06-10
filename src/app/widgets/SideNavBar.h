@@ -32,7 +32,11 @@ namespace est
         explicit SideNavBar(QWidget *parent = nullptr);
 
         void addNavigationItem(const QString &id, const QString &text, const QIcon &icon = QIcon());
+        void addBottomNavigationItem(const QString &id, const QString &text, const QIcon &icon = QIcon());
+        void setNavigationItemIcon(const QString &id, const QIcon &icon);
+        void setNavigationItemText(const QString &id, const QString &text);
         void setCurrentId(const QString &id);
+        void setPinnedExpanded(bool pinnedExpanded);
 
         int sidebarWidth() const;
         void setSidebarWidth(int width);
@@ -55,9 +59,11 @@ namespace est
         QLabel *m_titleLabel = nullptr;
         QLabel *m_versionLabel = nullptr;
         QVBoxLayout *m_navLayout = nullptr;
-    bool m_expanded = true;  // 初始 true，确保构造函数 setExpanded(false) 生效
+        QVBoxLayout *m_bottomNavLayout = nullptr;
+        bool m_expanded = true; // 初始 true，确保构造函数 setExpanded(false) 生效
+        bool m_pinnedExpanded = false;
 
-    int m_collapsedWidth = 72;
+        int m_collapsedWidth = 72;
         int m_expandedWidth = 200;
 
         QPropertyAnimation *m_expandAnimation = nullptr;
@@ -79,6 +85,7 @@ namespace est
         void setExpanded(bool expanded);
         void setSelected(bool selected);
         void setIcon(const QIcon &icon);
+        void setText(const QString &text);
 
         QString id() const { return m_item.id; }
 
@@ -95,8 +102,8 @@ namespace est
     private:
         NavItem m_item;
         QIcon m_icon;
-    bool m_expanded = true;  // 初始 true，确保 setExpanded(false) 生效
-    bool m_selected = false;
+        bool m_expanded = true; // 初始 true，确保 setExpanded(false) 生效
+        bool m_selected = false;
         bool m_hovered = false;
         bool m_pressed = false;
     };

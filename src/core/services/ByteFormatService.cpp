@@ -1,11 +1,8 @@
 #include "services/ByteFormatService.h"
+#include "services/EncodingUtil.h"
 
 #include <QChar>
 #include <QRegularExpression>
-
-#ifdef Q_OS_WIN
-#include <qt_windows.h>
-#endif
 
 namespace est
 {
@@ -15,166 +12,32 @@ namespace est
 
         QString decodeGbk(const QByteArray &bytes, bool *ok, QString *errorMessage)
         {
-#ifdef Q_OS_WIN
-            if (bytes.isEmpty())
-            {
-                if (ok != nullptr)
-                {
-                    *ok = true;
-                }
-                return {};
-            }
-
-            const int wideSize = MultiByteToWideChar(936, MB_ERR_INVALID_CHARS, bytes.constData(), bytes.size(), nullptr, 0);
-            if (wideSize <= 0)
-            {
-                if (ok != nullptr)
-                {
-                    *ok = false;
-                }
-                if (errorMessage != nullptr)
-                {
-                    *errorMessage = QStringLiteral("GBK 解码失败。");
-                }
-                return {};
-            }
-
-            std::wstring wideText(static_cast<size_t>(wideSize), L'\0');
-            MultiByteToWideChar(936, MB_ERR_INVALID_CHARS, bytes.constData(), bytes.size(), wideText.data(), wideSize);
-            if (ok != nullptr)
-            {
-                *ok = true;
-            }
-            return QString::fromStdWString(wideText);
-#else
-            if (ok != nullptr)
-            {
-                *ok = true;
-            }
-            Q_UNUSED(errorMessage)
-            return QString::fromLocal8Bit(bytes);
-#endif
+            return EncodingUtil::decodeGbk(bytes, ok, errorMessage);
         }
 
         QByteArray encodeGbk(const QString &text, bool *ok, QString *errorMessage)
         {
-#ifdef Q_OS_WIN
-            if (text.isEmpty())
-            {
-                if (ok != nullptr)
-                {
-                    *ok = true;
-                }
-                return {};
-            }
-
-            const std::wstring wideText = text.toStdWString();
-            const int byteCount = WideCharToMultiByte(936, WC_NO_BEST_FIT_CHARS, wideText.c_str(), static_cast<int>(wideText.size()), nullptr, 0, nullptr, nullptr);
-            if (byteCount <= 0)
-            {
-                if (ok != nullptr)
-                {
-                    *ok = false;
-                }
-                if (errorMessage != nullptr)
-                {
-                    *errorMessage = QStringLiteral("GBK 编码失败。\n当前文本可能包含无法表示的字符。");
-                }
-                return {};
-            }
-
-            QByteArray bytes(byteCount, Qt::Uninitialized);
-            WideCharToMultiByte(936, WC_NO_BEST_FIT_CHARS, wideText.c_str(), static_cast<int>(wideText.size()), bytes.data(), byteCount, nullptr, nullptr);
-            if (ok != nullptr)
-            {
-                *ok = true;
-            }
-            return bytes;
-#else
-            if (ok != nullptr)
-            {
-                *ok = true;
-            }
-            Q_UNUSED(errorMessage)
-            return text.toLocal8Bit();
-#endif
+            return EncodingUtil::encodeGbk(text, ok, errorMessage);
         }
 
         QString decodeUtf16(const QByteArray &bytes, bool bigEndian, bool *ok, QString *errorMessage)
         {
-            if ((bytes.size() % 2) != 0)
-            {
-                if (ok != nullptr)
-                {
-                    *ok = false;
-                }
-                if (errorMessage != nullptr)
-                {
-                    *errorMessage = QStringLiteral("UTF-16 数据长度必须为偶数。\n请检查输入字节。");
-                }
-                return {};
-            }
-
-            QString result;
-            result.reserve(bytes.size() / 2);
-            for (int index = 0; index < bytes.size(); index += 2)
-            {
-                const uchar first = static_cast<uchar>(bytes.at(index));
-                const uchar second = static_cast<uchar>(bytes.at(index + 1));
-                const ushort codeUnit = bigEndian
-                                             ? static_cast<ushort>((first << 8) | second)
-                                             : static_cast<ushort>((second << 8) | first);
-                result.append(QChar(codeUnit));
-            }
-
-            if (ok != nullptr)
-            {
-                *ok = true;
-            }
-            return result;
+            return EncodingUtil::decodeUtf16(bytes, bigEndian, ok, errorMessage);
         }
 
         QByteArray encodeUtf16(const QString &text, bool bigEndian)
         {
-            QByteArray bytes;
-            bytes.reserve(text.size() * 2);
-            for (QChar character : text)
-            {
-                const ushort codeUnit = character.unicode();
-                if (bigEndian)
-                {
-                    bytes.append(static_cast<char>((codeUnit >> 8) & 0xFF));
-                    bytes.append(static_cast<char>(codeUnit & 0xFF));
-                }
-                else
-                {
-                    bytes.append(static_cast<char>(codeUnit & 0xFF));
-                    bytes.append(static_cast<char>((codeUnit >> 8) & 0xFF));
-                }
-            }
-            return bytes;
+            return EncodingUtil::encodeUtf16(text, bigEndian);
         }
 
         QString normalizedHexInput(QString input)
         {
-            input.replace(QRegularExpression(QStringLiteral("\\\\x"),
-                                             QRegularExpression::CaseInsensitiveOption),
-                          QString());
-            input.replace(QRegularExpression(QStringLiteral("0x"),
-                                             QRegularExpression::CaseInsensitiveOption),
-                          QString());
-            input.remove(QRegularExpression(QStringLiteral("[\\s,;{}\\[\\]]+")));
-            return input;
+            return EncodingUtil::normalizedHexInput(input);
         }
 
         QString sanitizedArrayName(const QString &arrayName)
         {
-            static const QRegularExpression kIdentifierPattern(QStringLiteral("^[A-Za-z_][A-Za-z0-9_]*$"));
-            if (kIdentifierPattern.match(arrayName).hasMatch())
-            {
-                return arrayName;
-            }
-            return QStringLiteral("data");
+            return EncodingUtil::sanitizedArrayName(arrayName);
         }
 
     } // namespace
@@ -245,7 +108,7 @@ namespace est
         {
             if (errorMessage != nullptr)
             {
-                *errorMessage = QStringLiteral("二进制位数必须是 8 的倍数。\n示例：01001010 01000011");
+                *errorMessage = QStringLiteral("二进制位数必须是 8 的倍数。\n当前输入 %1 位。\n示例：01001010 01000011").arg(normalized.size());
             }
             return false;
         }
@@ -284,22 +147,32 @@ namespace est
         else if (separatorMode == QStringLiteral("comma"))
         {
             sep = QStringLiteral(",");
+            // "XX," = 3 chars per byte, but the last byte has no trailing comma
+            // total = 2*N + (N-1)*1 = 3N - 1
             charsPerByte = 3;
         }
         else if (separatorMode == QStringLiteral("0x"))
         {
             prepend0x = true;
+            // "0xXX" + " 0xXX" per subsequent byte
             charsPerByte = 5;
         }
         else
         {
+            // "XX " = 3 chars per byte (default space mode)
             charsPerByte = 3;
         }
 
-        int totalLen = bytes.size() * charsPerByte;
+        int totalLen = bytes.size() * 2; // 2 hex chars per byte
         if (!sep.isEmpty())
         {
-            totalLen -= sep.size();
+            // Add separator chars between bytes (N-1 separators)
+            totalLen += (bytes.size() - 1) * sep.size();
+        }
+        if (prepend0x)
+        {
+            // "0x" prefix per byte = 2 chars * N
+            totalLen += bytes.size() * 2;
         }
 
         QString result;
@@ -369,7 +242,7 @@ namespace est
             }
 
             const uchar byte = static_cast<uchar>(bytes.at(index));
-            result.append(QStringLiteral("0x%1").arg(byte, 2, 16, QLatin1Char('0')).toUpper().replace(QStringLiteral("0X"), QStringLiteral("0x")));
+            result.append(QStringLiteral("0x%1").arg(byte, 2, 16, QLatin1Char('0')));
 
             if (index < bytes.size() - 1)
             {

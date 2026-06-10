@@ -5,6 +5,7 @@
 #include "services/ByteChecksumService.h"
 #include "services/ByteDataInspectorService.h"
 #include "services/ByteFormatService.h"
+#include "services/AppPaths.h"
 #include "services/RecentRecordManager.h"
 #include "widgets/HexViewerWidget.h"
 #include "widgets/SearchBarWidget.h"
@@ -189,9 +190,14 @@ namespace est
             return;
         }
 
-        const QString filePath = QFileDialog::getSaveFileName(this, tr("导出 HEX 文本"), QStringLiteral("bin_hex.txt"), tr("文本文件 (*.txt)"));
+        const QString filePath = QFileDialog::getSaveFileName(this, tr("导出 HEX 文本"), AppPaths::exportFilePath(QStringLiteral("bin_hex.txt")), tr("文本文件 (*.txt)"));
         if (filePath.isEmpty())
         {
+            return;
+        }
+        if (AppPaths::isDriveCPath(filePath))
+        {
+            emit statusMessageGenerated(tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
             return;
         }
 

@@ -9,12 +9,19 @@ set(CORE_SOURCES
     # services
     services/BinFileLoader.cpp
     services/BinSearchService.cpp
+    services/AppPaths.cpp
     services/ByteChecksumService.cpp
     services/ByteDataInspectorService.cpp
     services/ByteFormatService.cpp
     services/DataConvertService.cpp
+    services/DataLogger.cpp
+    services/ProtocolDecoder.cpp
+    services/ProtocolTemplate.cpp
     services/RecentRecordManager.cpp
+    services/RtosTaskParser.cpp
+    services/SlcanCodec.cpp
     services/StringExtractor.cpp
+    services/EncodingUtil.cpp
     # utils/algo
     FileCompareEngine.cpp
     # transport
@@ -36,12 +43,19 @@ set(CORE_HEADERS
     # services
     services/BinFileLoader.h
     services/BinSearchService.h
+    services/AppPaths.h
     services/ByteChecksumService.h
     services/ByteDataInspectorService.h
     services/ByteFormatService.h
     services/DataConvertService.h
+    services/DataLogger.h
+    services/ProtocolDecoder.h
+    services/ProtocolTemplate.h
     services/RecentRecordManager.h
+    services/RtosTaskParser.h
+    services/SlcanCodec.h
     services/StringExtractor.h
+    services/EncodingUtil.h
     # utils/algo
     FileCompareEngine.h
     # transport

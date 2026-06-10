@@ -16,19 +16,24 @@ namespace est
         bool isCandidateByte(uchar byte, ByteFormatService::TextEncoding encoding)
         {
             if (encoding == ByteFormatService::TextEncoding::ASCII)
-            {
                 return isAsciiPrintable(byte);
-            }
 
             if (byte == 0x00)
-            {
                 return false;
+
+            if (encoding == ByteFormatService::TextEncoding::UTF8) {
+                // In UTF-8, 0x80-0x9F are continuation or invalid start bytes
+                // 0xC0-0xDF are 2-byte start, 0xE0-0xEF 3-byte, 0xF0-0xF4 4-byte
+                if (byte >= 0x20 && byte <= 0x7E)
+                    return true;  // ASCII printable
+                if (byte >= 0xA0)
+                    return true;  // Non-ASCII UTF-8 start or continuation
+                return false;     // 0x80-0x9F, 0x7F are invalid in our context
             }
 
+            // For GBK and other encodings
             if (byte >= 0x20 && byte != 0x7F)
-            {
                 return true;
-            }
 
             return byte >= 0x80;
         }
@@ -41,6 +46,8 @@ namespace est
                 return false;
             }
 
+            // Intentional: filtering pure-punctuation to reduce false positives.
+            // If you need all extractable strings, lower minimumLength instead.
             for (QChar character : trimmed)
             {
                 if (character.isLetterOrNumber())
@@ -57,6 +64,8 @@ namespace est
                                                          int minimumLength,
                                                          ByteFormatService::TextEncoding encoding)
     {
+        // Single-pass scan: does not detect overlapping strings from different encodings.
+        // For overlapping detection, run extract() separately per encoding and merge results.
         QList<ExtractedStringEntry> results;
 
         int startIndex = -1;

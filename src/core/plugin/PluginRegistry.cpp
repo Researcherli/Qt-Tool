@@ -12,8 +12,8 @@ PluginRegistry::PluginRegistry(QObject* parent)
 PluginRegistry::~PluginRegistry()
 {
     // 关闭所有插件（逆序）
-    auto names = pluginNames();
-    for (auto it = names.rbegin(); it != names.rend(); ++it) {
+    const auto names = pluginNames();  // Copy before iteration
+    for (auto it = names.crbegin(); it != names.crend(); ++it) {
         IPlugin* p = m_plugins.take(*it);
         if (p) {
             p->shutdown();

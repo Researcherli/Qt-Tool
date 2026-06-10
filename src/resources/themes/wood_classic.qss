@@ -196,7 +196,7 @@ QStatusBar {
 
 QStatusBar QLabel {
     color: #203447;
-    padding: 0 8px;
+    padding: 2px 8px;
 }
 
 QWidget#sideNavBar {

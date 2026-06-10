@@ -59,6 +59,8 @@ private:
         std::function<void(const DataPacket&)> handler;
     };
 
+    static bool channelMatches(const QString& subscriptionChannel, const QString& publishedChannel);
+
     QHash<QString, QVector<Subscriber>> m_subscribers;
     QHash<quint64, QString> m_handleToChannel;
     quint64 m_nextHandleId = 1;

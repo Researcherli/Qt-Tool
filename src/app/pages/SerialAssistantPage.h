@@ -4,7 +4,10 @@
 #include <QWidget>
 #include <memory>
 
+#include "databus/SubscriptionHandle.h"
+
 class QTimer;
+class QLabel;
 
 namespace est
 {
@@ -62,6 +65,12 @@ namespace est
         SerialSendPanel *m_sendPanel = nullptr;
         RecentRecordManager *m_recentRecordManager = nullptr;
         QTimer *m_autoSendTimer = nullptr;
+        SubscriptionHandle m_subscription;
+
+        // 底部状态栏
+        QLabel *m_footerSerialLabel = nullptr;
+        QLabel *m_footerTxLabel = nullptr;
+        QLabel *m_footerRxLabel = nullptr;
     };
 
 } // namespace est

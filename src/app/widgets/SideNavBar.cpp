@@ -93,6 +93,7 @@ namespace est
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         setFixedHeight(48);
         setCursor(Qt::PointingHandCursor);
+        setToolTip(item.text);
     }
 
     void NavIconButton::setExpanded(bool expanded)
@@ -100,6 +101,7 @@ namespace est
         if (m_expanded == expanded)
             return;
         m_expanded = expanded;
+        setToolTip(expanded ? QString() : m_item.text);
         update();
     }
 
@@ -114,6 +116,16 @@ namespace est
     void NavIconButton::setIcon(const QIcon &icon)
     {
         m_icon = icon;
+        update();
+    }
+
+    void NavIconButton::setText(const QString &text)
+    {
+        if (m_item.text == text)
+            return;
+
+        m_item.text = text;
+        setToolTip(m_expanded ? QString() : m_item.text);
         update();
     }
 
@@ -180,18 +192,30 @@ namespace est
             p.setFont(iconFont);
             p.setPen(m_selected ? Qt::white : QColor(QStringLiteral("#173E63")));
 
+            // Use first ASCII character or abbreviation
             const QString letter = m_item.text.left(1);
+            // If it's a CJK character (unicode > 0x4E00), use a generic symbol instead
+            QString displayChar = letter;
+            if (!letter.isEmpty() && letter.at(0).unicode() >= 0x4E00) {
+                // Use first ASCII character from the nav id as abbreviation
+                QChar firstAscii;
+                for (const QChar &ch : m_item.text) {
+                    if (ch.unicode() < 0x4E00 && ch.isLetter()) {
+                        firstAscii = ch;
+                        break;
+                    }
+                }
+                displayChar = firstAscii.isNull() ? QStringLiteral("☰") : QString(firstAscii);
+            }
             p.drawText(QRect(circleCenterX - circleRadius, circleCenterY - circleRadius,
                              circleRadius * 2, circleRadius * 2),
-                       Qt::AlignCenter, letter);
+                       Qt::AlignCenter, displayChar);
         }
 
         // 文字 — 仅展开时显示
         if (m_expanded)
         {
             QFont textFont(QStringLiteral("Segoe UI"), 12);
-            if (m_selected)
-                textFont.setWeight(QFont::DemiBold);
             p.setFont(textFont);
 
             p.setPen(m_selected ? Qt::white : QColor(QStringLiteral("#203447")));
@@ -267,7 +291,7 @@ namespace est
         m_titleLabel = new QLabel(brandHeader);
         m_titleLabel->setObjectName(QStringLiteral("sideNavTitle"));
         m_titleLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-        m_titleLabel->setText(tr("嵌入式工具"));
+        m_titleLabel->setText(tr("EST Studio"));
 
         brandLayout->addWidget(m_logoLabel);
         brandLayout->addWidget(m_titleLabel);
@@ -287,10 +311,19 @@ namespace est
         m_navLayout->setSpacing(4);
         m_navLayout->setAlignment(Qt::AlignTop);
 
+        auto *bottomNavContainer = new QWidget(this);
+        bottomNavContainer->setObjectName(QStringLiteral("bottomNavContainer"));
+        bottomNavContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        m_bottomNavLayout = new QVBoxLayout(bottomNavContainer);
+        m_bottomNavLayout->setContentsMargins(6, 8, 6, 4);
+        m_bottomNavLayout->setSpacing(4);
+        m_bottomNavLayout->setAlignment(Qt::AlignBottom);
+
         rootLayout->addWidget(brandHeader);
         rootLayout->addSpacing(8);
         rootLayout->addWidget(navContainer, 0, Qt::AlignTop);
         rootLayout->addStretch(1);
+        rootLayout->addWidget(bottomNavContainer, 0, Qt::AlignBottom);
         rootLayout->addWidget(m_versionLabel, 0, Qt::AlignHCenter | Qt::AlignBottom);
 
         // 展开收缩动画
@@ -350,6 +383,44 @@ namespace est
         }
     }
 
+    void SideNavBar::addBottomNavigationItem(const QString &id, const QString &text, const QIcon &icon)
+    {
+        if (m_bottomNavLayout == nullptr)
+            return;
+
+        NavItem item{id, text, QString()};
+
+        auto *btn = new NavIconButton(item, this);
+        if (!icon.isNull())
+        {
+            btn->setIcon(icon);
+        }
+        m_buttons.append(btn);
+        m_buttonById.insert(id, btn);
+
+        connect(btn, &NavIconButton::clicked, this, [this](const QString &clickedId)
+                {
+            setCurrentId(clickedId);
+            emit navigationRequested(clickedId); });
+
+        m_bottomNavLayout->addWidget(btn);
+        btn->setExpanded(m_expanded);
+    }
+
+    void SideNavBar::setNavigationItemIcon(const QString &id, const QIcon &icon)
+    {
+        auto it = m_buttonById.find(id);
+        if (it != m_buttonById.end())
+            it.value()->setIcon(icon);
+    }
+
+    void SideNavBar::setNavigationItemText(const QString &id, const QString &text)
+    {
+        auto it = m_buttonById.find(id);
+        if (it != m_buttonById.end())
+            it.value()->setText(text);
+    }
+
     void SideNavBar::setCurrentId(const QString &id)
     {
         auto it = m_buttonById.find(id);
@@ -366,17 +437,29 @@ namespace est
         m_currentButton->setSelected(true);
     }
 
+    void SideNavBar::setPinnedExpanded(bool pinnedExpanded)
+    {
+        if (m_pinnedExpanded == pinnedExpanded)
+            return;
+
+        m_pinnedExpanded = pinnedExpanded;
+        m_collapseTimer->stop();
+        setExpanded(m_pinnedExpanded);
+    }
+
     void SideNavBar::enterEvent(QEnterEvent *event)
     {
         QWidget::enterEvent(event);
         m_collapseTimer->stop();
-        setExpanded(true);
     }
 
     void SideNavBar::leaveEvent(QEvent *event)
     {
         QWidget::leaveEvent(event);
-        m_collapseTimer->start();
+        if (!m_pinnedExpanded)
+        {
+            m_collapseTimer->start();
+        }
     }
 
     void SideNavBar::onCollapseTimer()
@@ -384,7 +467,7 @@ namespace est
         // 确认鼠标确实已经离开整个 SideNavBar 区域后才收缩
         if (!rect().contains(mapFromGlobal(QCursor::pos())))
         {
-            setExpanded(false);
+            setExpanded(m_pinnedExpanded);
         }
     }
 
@@ -395,7 +478,7 @@ namespace est
 
         m_expanded = expanded;
 
-        // 动画切换宽度
+        // 停止上一个动画，防止快速 hover 时多个动画冲突
         m_expandAnimation->stop();
         m_expandAnimation->setStartValue(width());
         m_expandAnimation->setEndValue(expanded ? m_expandedWidth : m_collapsedWidth);

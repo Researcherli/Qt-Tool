@@ -1,0 +1,525 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif; max-width: 900px; margin: 30px auto; color: #333; padding: 0 30px; }
+h1 { font-size: 28px; color: #173E63; border-bottom: 3px solid #2F7FB5; padding-bottom: 10px; margin-top: 20px; }
+h2 { font-size: 22px; color: #2F7FB5; margin-top: 40px; padding-left: 10px; border-left: 4px solid #2F7FB5; }
+h3 { font-size: 17px; color: #444; margin-top: 25px; }
+p { margin: 10px 0; line-height: 1.8; }
+ul, ol { margin: 8px 0 8px 20px; padding: 0; }
+li { margin: 6px 0; line-height: 1.7; }
+table { border-collapse: collapse; margin: 15px 0; width: 100%; font-size: 13px; }
+th { background: #2F7FB5; color: #FFF; padding: 10px 14px; text-align: left; font-weight: 600; }
+td { padding: 8px 14px; border-bottom: 1px solid #E0E0E0; }
+tr:nth-child(even) { background: #F5F9FC; }
+code { background: #E8F0F8; padding: 2px 8px; border-radius: 4px; font-size: 13px; color: #D32F2F; font-family: 'Consolas', monospace; }
+.tip { background: #E8F5E9; border-left: 4px solid #4CAF50; padding: 12px 16px; margin: 15px 0; border-radius: 0 6px 6px 0; }
+.tip b { color: #2E7D32; }
+.warn { background: #FFF3E0; border-left: 4px solid #FF9800; padding: 12px 16px; margin: 15px 0; border-radius: 0 6px 6px 0; }
+.warn b { color: #E65100; }
+.step { background: #F5F9FC; border: 1px solid #E0E0E0; border-radius: 8px; padding: 16px 20px; margin: 15px 0; }
+.toc { background: #FFF; border: 1px solid #E0E0E0; border-radius: 10px; padding: 20px 25px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.toc h2 { border: none; padding: 0; margin: 0 0 15px 0; }
+.toc a { color: #2F7FB5; text-decoration: none; display: block; padding: 5px 0; font-size: 14px; }
+.toc a:hover { color: #173E63; text-decoration: underline; }
+.badge { display: inline-block; background: #2F7FB5; color: #FFF; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px; }
+.badge-new { background: #4CAF50; }
+.footer { text-align: center; padding: 40px 0 20px 0; color: #AAA; font-size: 12px; border-top: 1px solid #EEE; margin-top: 50px; }
+</style>
+</head>
+<body>
+
+<div style="text-align:center;padding:40px 0 20px 0;">
+<h1 style="border:none;font-size:32px;margin:0;">
+嵌入式工具平台 <span style="color:#999;font-weight:300;">使用手册</span></h1>
+<p style="color:#888;font-size:15px;">
+Embedded Software Tools - 让嵌入式开发更高效</p>
+</div>
+
+<div class="tip">
+<b>快速开始</b><br>
+本工具包含 <b>10 个功能模块</b>，可通过左侧导航栏或首页按钮切换。
+所有与硬件通信的功能统一通过 <b>串口工具</b> 管理连接。
+</div>
+
+<div class="toc">
+<h2>目录</h2>
+<a href="#sec1">1. 串口工具</a>
+<a href="#sec2">2. 终端控制台 <span class="badge badge-new">NEW</span></a>
+<a href="#sec3">3. 数据转换</a>
+<a href="#sec4">4. 协议解析 <span class="badge badge-new">NEW</span></a>
+<a href="#sec5">5. BIN 文件分析</a>
+<a href="#sec6">6. 文件比较</a>
+<a href="#sec7">7. 波形图</a>
+<a href="#sec8">8. RTOS 监控</a>
+<a href="#sec8-config">8.1 FreeRTOS 配置指南</a>
+<a href="#sec9">9. CAN 总线 <span class="badge badge-new">NEW</span></a>
+<a href="#sec10">10. 数据日志录制 & 回放 <span class="badge badge-new">NEW</span></a>
+</div>
+
+<h2 id="sec1">1. 串口工具</h2>
+<p>串口调试工具是整个平台的核心通信入口。通过串口连接目标板后，其他功能（波形图、RTOS 监控）可自动接收数据。</p>
+
+<h3>连接设备</h3>
+<ol>
+<li>将开发板通过 USB 串口线连接到电脑</li>
+<li>在 <b>串口设置栏</b> 选择正确的串口号（如 COM3、COM4）</li>
+<li>配置参数：<code>波特率</code> <code>数据位</code> <code>校验位</code> <code>停止位</code></li>
+<li>点击 <b>打开串口</b> 按钮建立连接</li>
+</ol>
+<div class="tip"><b>提示：</b>常用波特率：115200（默认）、9600（旧设备）、921600（高速）</div>
+
+<h3>发送数据</h3>
+<ul>
+<li><b>普通发送</b>：在输入框输入内容，点击"发送"</li>
+<li><b>Hex 发送</b>：切换发送模式为 HEX，输入十六进制字节（如 <code>A5 5A 01 02</code>）</li>
+<li><b>自动发送</b>：设置定时周期，工具按间隔自动发送输入内容</li>
+<li><b>快捷命令</b>：将常用指令保存为快捷命令，一键发送</li>
+</ul>
+
+<h3>接收数据</h3>
+<ul>
+<li><b>显示模式</b>：ASCII / HEX / 混合 三种视图可切换</li>
+<li><b>自动滚动</b>：新数据到达时自动滚到底部</li>
+<li><b>搜索</b>：使用搜索框在接收日志中定位关键字</li>
+<li><b>清空</b>：一键清除当前接收缓冲区</li>
+</ul>
+<div class="warn"><b>注意：</b>串口工具是数据源。打开波形图或 RTOS 监控页面时，数据从串口自动流向这些页面。</div>
+
+<h2 id="sec2">2. 终端控制台 <span class="badge badge-new">NEW</span></h2>
+<p>终端控制台 — 类 PuTTY 风格的串口终端界面，支持 ANSI 彩色输出、命令历史、Python 脚本自动化。</p>
+
+<h3>功能特性</h3>
+<ul>
+<li><b>终端模式</b>：深色主题终端，串口数据实时显示，ANSI 转义码彩色支持</li>
+<li><b>命令历史</b>：按 ↑/↓ 键浏览历史命令（最多保存 100 条）</li>
+<li><b>Python 脚本</b>：编写 Python 脚本自动化串口交互，支持发送/接收/等待/延时</li>
+</ul>
+
+<h3>终端使用</h3>
+<div class="step"><b>步骤 1：连接串口</b><br>在顶部连接栏选择串口号和波特率，点击 <b>打开</b>。</div>
+<div class="step"><b>步骤 2：发送命令</b><br>在底部输入行输入命令，按回车发送（自动追加 CR+LF）。</div>
+<div class="step"><b>步骤 3：浏览历史</b><br>按 ↑/↓ 键快速切换之前发送过的命令。</div>
+
+<h3>Python 脚本使用</h3>
+<p>切换到 <b>脚本</b> 标签，在代码编辑器中编写 Python 脚本：</p>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:13px;line-height:1.6;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+<span style="color:#6E7781;"># 可用函数：send()  send_hex()  wait()  print()  delay()</span>
+<span style="color:#D73A49;">print</span>(<span style="color:#032F62;">"=== 模块自动测试 ==="</span>)
+<span style="color:#D73A49;">send</span>(<span style="color:#032F62;">"AT\r\n"</span>)
+r <span style="color:#D73A49;">=</span> <span style="color:#D73A49;">wait</span>(<span style="color:#032F62;">"OK"</span>, <span style="color:#0550AE;">3000</span>)
+<span style="color:#D73A49;">if</span> r:
+    <span style="color:#D73A49;">print</span>(<span style="color:#032F62;">"模块响应正常 ✓"</span>)
+<span style="color:#D73A49;">else</span>:
+    <span style="color:#D73A49;">print</span>(<span style="color:#032F62;">"模块无响应 ✗"</span>)
+</pre>
+</div>
+<p>点击 <b>▶ 运行</b> 执行脚本，<b>⏹ 停止</b> 终止执行。脚本输出实时显示在右侧终端面板。</p>
+
+<div class="tip"><b>脚本 API 说明：</b><br>
+- <code>send(data)</code> — 发送字符串数据<br>
+- <code>send_hex(hex)</code> — 发送 HEX 数据（如 "A5 5A 03"）<br>
+- <code>wait(pattern, timeout)</code> — 等待串口数据匹配正则表达式（超时毫秒）<br>
+- <code>print(msg)</code> — 输出到终端<br>
+- <code>delay(ms)</code> — 延时（毫秒）</div>
+
+<h2 id="sec3">3. 数据转换</h2>
+<p>数据转换工具支持常见数据格式之间的相互转换，是调试二进制协议时的得力助手。</p>
+
+<h3>支持的格式</h3>
+<table>
+<tr><th>输入格式</th><th>输出格式</th><th>典型用途</th></tr>
+<tr><td>字符串 (ASCII)</td><td>HEX 字节</td><td>将文本指令转为 HEX 发送</td></tr>
+<tr><td>HEX 字符串</td><td>原始字节</td><td>解析接收到的 HEX 数据</td></tr>
+<tr><td>十进制字节</td><td>HEX / 字符串</td><td>分析传感器数值</td></tr>
+<tr><td>二进制</td><td>HEX / 十进制</td><td>调试位域数据</td></tr>
+<tr><td>Base64</td><td>原始字节</td><td>OTA 固件解码</td></tr>
+</table>
+
+<h3>使用步骤</h3>
+<ol>
+<li>在左侧输入框中粘贴或输入源数据</li>
+<li>选择源数据格式</li>
+<li>选择目标格式</li>
+<li>转换结果自动在右侧显示</li>
+</ol>
+<div class="tip"><b>提示：</b>使用 HEX 转十进制功能可快速查看协议数据包中各字节的含义。</div>
+
+<h2 id="sec4">4. 协议解析 <span class="badge badge-new">NEW</span></h2>
+<p>协议解析器 — 自定义二进制协议模板，将串口原始字节自动解析为结构化字段。支持帧头匹配、字段着色、校验和验证。</p>
+
+<h3>工作原理</h3>
+<p>协议解析器通过 <b>模板</b> 来描述你的二进制协议格式。创建一个模板后，当串口收到数据时，解析器自动：</p>
+<ol>
+<li>在字节流中搜索 <b>帧头</b>（Constant 字段）</li>
+<li>读取 <b>长度字段</b>（如有）确定帧长</li>
+<li>按 <b>字段列表</b> 逐字段解码</li>
+<li>验证 <b>校验和</b>（如有）</li>
+<li>在帧列表中展示所有已解析的帧</li>
+</ol>
+
+<h3>创建模板</h3>
+<div class="step"><b>步骤 1：点击 +新建</b><br>填写模板名称（如 "UART通信协议"），选择字节序和校验算法。</div>
+<div class="step"><b>步骤 2：添加字段</b><br>按帧顺序添加字段：帧头(常量)、长度、命令、数据、校验等。</div>
+<div class="step"><b>步骤 3：保存模板</b><br>模板自动持久化到配置，下次启动自动加载。</div>
+
+<h3>支持的字段类型</h3>
+<table>
+<tr><th>类型</th><th>用途</th><th>示例值</th></tr>
+<tr><td><b>常量</b></td><td>帧头标记，用于自动匹配</td><td><code>5A</code></td></tr>
+<tr><td><b>长度</b></td><td>帧长度字段</td><td><code>0A</code></td></tr>
+<tr><td><b>类型</b></td><td>命令码/帧类型</td><td><code>01</code></td></tr>
+<tr><td><b>负载</b></td><td>可变长度的数据部分</td><td><code>01 02 03</code></td></tr>
+<tr><td><b>校验</b></td><td>XOR / 累加和 / CRC8</td><td><code>F8</code></td></tr>
+<tr><td><b>地址/序号/状态</b></td><td>专用字段</td><td>无</td></tr>
+</table>
+
+<h3>显示格式</h3>
+<p>每个字段可以独立选择显示格式：</p>
+<ul>
+<li><b>HEX</b> — 十六进制（默认）</li>
+<li><b>DEC</b> — 无符号十进制</li>
+<li><b>有符号</b> — 有符号十进制</li>
+<li><b>BIN</b> — 二进制</li>
+<li><b>ASCII</b> — ASCII 字符</li>
+<li><b>FLOAT</b> — 浮点数</li>
+</ul>
+
+<div class="tip"><b>使用场景：</b><br>
+• 调试自定义串口协议（如 MCU ↔ 传感器通信）<br>
+• 分析 Modbus RTU 帧（地址+功能码+数据+CRC16）<br>
+• 验证帧头 + 校验和是否正确</div>
+
+<h2 id="sec5">5. BIN 文件分析</h2>
+<p>二进制文件分析器 - 加载 .bin/.hex 文件后进行深度分析，适合逆向工程、固件分析、内存布局验证。</p>
+
+<h3>核心功能</h3>
+<table>
+<tr><th>功能</th><th>说明</th></tr>
+<tr><td><b>Hex 查看器</b></td><td>经典的双栏十六进制 + ASCII 视图，支持跳转到指定偏移量</td></tr>
+<tr><td><b>字符串提取</b></td><td>自动扫描二进制数据中的可读字符串（支持 ASCII / UTF-8 / GBK 编码）</td></tr>
+<tr><td><b>字节检查器</b></td><td>选择偏移量后，以小端/大端格式查看 int8/uint16/uint32/float32 值</td></tr>
+<tr><td><b>校验和计算</b></td><td>计算 CRC32 / MD5 / SHA1 等常见校验值</td></tr>
+<tr><td><b>搜索</b></td><td>支持字符串搜索、Hex 模式搜索、偏移量定位</td></tr>
+</table>
+
+<h3>分析一个 BIN 文件</h3>
+<div class="step"><b>步骤 1：加载文件</b><br>点击"打开文件"或从首页 BIN 分析按钮直接进入文件对话框。</div>
+<div class="step"><b>步骤 2：查看基本信息</b><br>文件加载后在顶部显示：文件大小、CRC32、MD5 等摘要信息。</div>
+<div class="step"><b>步骤 3：检查字节</b><br>在 Hex 视图中点击任意字节，下方面板显示该偏移量的各种类型解读。</div>
+<div class="step"><b>步骤 4：提取字符串</b><br>切换到"字符串"选项卡，工具自动列出文件中所有可读字符串及偏移。</div>
+
+<h2 id="sec6">6. 文件比较</h2>
+<p>文件比较工具支持左右双栏对比文本文件或二进制文件，差异高亮显示，适合对比固件版本差异、配置文件变更等场景。</p>
+
+<h3>比较文件</h3>
+<ol>
+<li>在左栏和右栏分别打开源文件和目标文件</li>
+<li>对比结果自动显示：差异行以 <span style="color:#D32F2F;">红色</span> 高亮</li>
+<li>使用左侧缩略图（Minimap）快速跳转到差异位置</li>
+<li>点击缩略图或拖动滑块可快速导航</li>
+</ol>
+
+<h3>功能特性</h3>
+<ul>
+<li><b>逐行比较</b>：按行对比文件内容差异</li>
+<li><b>差异导航</b>：点击缩略图快速定位差异块</li>
+<li><b>代码着色</b>：语法高亮便于阅读代码文件</li>
+</ul>
+
+<h2 id="sec7">7. 波形图</h2>
+<p>实时波形曲线图 - 将串口数据中的数值型数据实时绘制为滚动曲线，类似于数字示波器。调试传感器、PID 控制、电机数据时的核心可视化工具。</p>
+
+<h3>快速上手</h3>
+<div class="step"><b>步骤 1：连接串口</b><br>在串口工具中打开串口，确保数据正在接收。</div>
+<div class="step"><b>步骤 2：添加数据序列</b><br>切换到波形图页面，点击工具栏 <b>添加序列</b> 按钮。</div>
+<div class="step"><b>步骤 3：配置解析规则</b><br>在弹出的对话框中选择或自定义解析规则。</div>
+<div class="step"><b>步骤 4：观察实时曲线</b><br>数据自动流入图表，滚动时间窗口实时更新。</div>
+
+<h3>解析规则说明</h3>
+<p>波形图支持 8 种预设解析规则 + 自定义正则表达式：</p>
+<table>
+<tr><th>规则</th><th>匹配示例</th><th>说明</th></tr>
+<tr><td><code>temp=([\\d.]+)</code></td><td><code>temp=25.3</code></td><td>匹配 temp= 后面的数值</td></tr>
+<tr><td><code>val[=:]\\s*(-?\\d+\\.?\\d*)</code></td><td><code>val:123</code></td><td>匹配 val: 或 val= 后面的数值</td></tr>
+<tr><td>第一个浮点数</td><td><code>abc 3.14 def</code></td><td>提取文本中第一个浮点数</td></tr>
+<tr><td>第一个整数</td><td><code>x=42 ok</code></td><td>提取文本中第一个整数</td></tr>
+<tr><td>Byte 0 / Byte 1</td><td><code>0xA5 0x5A</code></td><td>提取原始数据的第 N 个字节</td></tr>
+<tr><td>Word LE</td><td>原始字节流</td><td>以小端序解析 16 位无符号整数</td></tr>
+<tr><td>自定义正则</td><td>用户定义</td><td>使用正则捕获组提取数值</td></tr>
+</table>
+
+<h3>工具栏操作</h3>
+<ul>
+<li><b>添加序列</b> - 弹出配置对话框，添加新的曲线</li>
+<li><b>删除序列</b> - 移除最后一条曲线</li>
+<li><b>暂停 / 继续</b> - 冻结/恢复实时更新</li>
+<li><b>清空</b> - 清除所有曲线数据</li>
+<li><b>时间窗口</b> - 调节 X 轴显示范围（1~300 秒，默认 10 秒）</li>
+</ul>
+
+<div class="tip"><b>使用场景示例：</b><br>
+- <b>电机控制</b>：解析串口输出的 <code>speed=1234</code>，观察转速变化<br>
+- <b>温度采集</b>：解析 <code>temp=26.5</code>，观察温升曲线<br>
+- <b>传感器数据</b>：解析 <code>adc:2048</code>，查看 ADC 采样波形</div>
+
+<h2 id="sec8">8. RTOS 监控</h2>
+<p>RTOS 任务监视器 - 通过串口接收 FreeRTOS 的 <code>vTaskList()</code> 和 <code>vTaskGetRunTimeStats()</code> 输出，实时可视化任务状态、堆栈使用和 CPU 占比。</p>
+
+<h3 id="sec8-config">▎ 在你的项目中启用 FreeRTOS 调试 API</h3>
+<p>要让 EST 工具收到正确的任务数据，需要在你的 FreeRTOS 项目中做两件事：<b>配置 FreeRTOSConfig.h</b> 和 <b>添加命令处理代码</b>。</p>
+
+<h4>Step 1：修改 FreeRTOSConfig.h</h4>
+<p>打开你的 <code>FreeRTOSConfig.h</code>，确保以下宏已启用：</p>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:13px;line-height:1.6;overflow-x:auto;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+<span style="color:#0550AE;">/* ===== FreeRTOSConfig.h 配置 ===== */</span>
+
+<span style="color:#D73A49;">#define</span> <span style="color:#22863A;">configUSE_TRACE_FACILITY</span>              <span style="color:#F78C6C;">1</span>
+<span style="color:#6E7781;">/* vTaskList() 和 vTaskGetRunTimeStats() 都需要 */</span>
+
+<span style="color:#D73A49;">#define</span> <span style="color:#22863A;">configGENERATE_RUN_TIME_STATS</span>         <span style="color:#F78C6C;">1</span>
+<span style="color:#6E7781;">/* 仅当需要 CPU 占比分析时才开启 */</span>
+
+<span style="color:#D73A49;">#define</span> <span style="color:#22863A;">configUSE_STATS_FORMATTING_FUNCTIONS</span>  <span style="color:#F78C6C;">1</span>
+<span style="color:#6E7781;">/* 启用 vTaskList() 格式化输出（FreeRTOS v10+ 需要） */</span>
+</pre>
+</div>
+
+<h4>Step 2：接入 CPU 运行时间计数器</h4>
+<p>如果开启了 <code>configGENERATE_RUN_TIME_STATS</code>，需要实现计时器。根据你的 MCU 选择一种方式：</p>
+
+<p><b>方案 A：使用 DWT 周期计数器（Cortex-M3/M4/M7 推荐）</b></p>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:13px;line-height:1.6;overflow-x:auto;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+<span style="color:#6E7781;">/* main() 中初始化 DWT */</span>
+<span style="color:#D73A49;">if</span> <span style="color:#0550AE;">(CoreDebug-&gt;DEMCR & 0x01000000) == 0</span> {
+    CoreDebug-&gt;DEMCR <span style="color:#F78C6C;">|=</span> <span style="color:#F78C6C;">0x01000000</span>;
+    DWT-&gt;CYCCNT <span style="color:#F78C6C;">=</span> <span style="color:#F78C6C;">0</span>;
+    DWT-&gt;CTRL <span style="color:#F78C6C;">|=</span> <span style="color:#F78C6C;">1</span>;
+}
+
+<span style="color:#6E7781;">/* FreeRTOSConfig.h 中定义 */</span>
+<span style="color:#D73A49;">#define</span> <span style="color:#22863A;">portALT_GET_RUN_TIME_COUNTER_VALUE</span>(x)  \
+    <span style="color:#D73A49;">do</span> { x = (<span style="color:#F78C6C;">uint32_t</span>)(DWT-&gt;CYCCNT); } <span style="color:#D73A49;">while</span>(<span style="color:#F78C6C;">0</span>)
+</pre>
+</div>
+
+<p><b>方案 B：使用 SysTick 或通用定时器（Cortex-M0 或其他）</b></p>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:13px;line-height:1.6;overflow-x:auto;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+<span style="color:#6E7781;">/* 定义一个全局计数器，在定时器中断中累加 */</span>
+<span style="color:#D73A49;">static</span> <span style="color:#D73A49;">volatile</span> <span style="color:#F78C6C;">uint32_t</span> <span style="color:#0550AE;">ulRunTimeCounter</span> <span style="color:#F78C6C;">=</span> <span style="color:#F78C6C;">0</span>;
+
+<span style="color:#6E7781;">/* 定时器中断服务函数（1KHz 或更高频率） */</span>
+<span style="color:#D73A49;">void</span> <span style="color:#0550AE;">Timer_ISR</span>(<span style="color:#D73A49;">void</span>) {
+    ulRunTimeCounter<span style="color:#F78C6C;">++</span>;
+}
+
+<span style="color:#6E7781;">/* FreeRTOSConfig.h 中定义 */</span>
+<span style="color:#D73A49;">#define</span> <span style="color:#22863A;">portALT_GET_RUN_TIME_COUNTER_VALUE</span>(x)  \
+    <span style="color:#D73A49;">do</span> { x = <span style="color:#0550AE;">ulRunTimeCounter</span>; } <span style="color:#D73A49;">while</span>(<span style="color:#F78C6C;">0</span>)
+</pre>
+</div>
+
+<h4>Step 3：添加串口命令处理代码</h4>
+<p>在串口接收任务或命令处理函数中，添加以下代码：</p>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:13px;line-height:1.6;overflow-x:auto;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+<span style="color:#6E7781;">/* ===== 串口命令处理函数（在你的 uart.c / serial_cmd.c 中） ===== */</span>
+
+<span style="color:#D73A49;">#include</span> <span style="color:#032F62;">"FreeRTOS.h"</span>
+<span style="color:#D73A49;">#include</span> <span style="color:#032F62;">"task.h"</span>
+
+<span style="color:#6E7781;">/* 你的串口输出函数 */</span>
+<span style="color:#D73A49;">extern void</span> <span style="color:#0550AE;">Serial_Print</span>(<span style="color:#D73A49;">const char</span> <span style="color:#F78C6C;">*</span>str);
+
+<span style="color:#D73A49;">void</span> <span style="color:#0550AE;">ProcessDebugCommand</span>(<span style="color:#D73A49;">const char</span> <span style="color:#F78C6C;">*</span><span style="color:#0550AE;">cmd</span>)
+{
+    <span style="color:#6E7781;">/* --- 命令: vTaskList — 获取任务状态快照 --- */</span>
+    <span style="color:#D73A49;">if</span> (<span style="color:#0550AE;">strcmp</span>(cmd, <span style="color:#032F62;">"vTaskList"</span>) <span style="color:#F78C6C;">==</span> <span style="color:#F78C6C;">0</span>)
+    {
+        <span style="color:#D73A49;">char</span> <span style="color:#F78C6C;">*</span><span style="color:#0550AE;">buf</span> <span style="color:#F78C6C;">=</span> <span style="color:#0550AE;">pvPortMalloc</span>(<span style="color:#F78C6C;">1024</span>);
+        <span style="color:#D73A49;">if</span> (buf)
+        {
+            <span style="color:#0550AE;">vTaskList</span>(buf);                    <span style="color:#6E7781;">// FreeRTOS API</span>
+            <span style="color:#0550AE;">Serial_Print</span>(buf);
+            <span style="color:#0550AE;">vPortFree</span>(buf);
+        }
+        <span style="color:#D73A49;">return</span>;
+    }
+
+    <span style="color:#6E7781;">/* --- 命令: vTaskStats — 获取 CPU 占比 --- */</span>
+    <span style="color:#D73A49;">if</span> (<span style="color:#0550AE;">strcmp</span>(cmd, <span style="color:#032F62;">"vTaskStats"</span>) <span style="color:#F78C6C;">==</span> <span style="color:#F78C6C;">0</span>)
+    {
+        <span style="color:#D73A49;">char</span> <span style="color:#F78C6C;">*</span><span style="color:#0550AE;">buf</span> <span style="color:#F78C6C;">=</span> <span style="color:#0550AE;">pvPortMalloc</span>(<span style="color:#F78C6C;">1024</span>);
+        <span style="color:#D73A49;">if</span> (buf)
+        {
+            <span style="color:#0550AE;">vTaskGetRunTimeStats</span>(buf);        <span style="color:#6E7781;">// FreeRTOS API</span>
+            <span style="color:#0550AE;">Serial_Print</span>(buf);
+            <span style="color:#0550AE;">vPortFree</span>(buf);
+        }
+        <span style="color:#D73A49;">return</span>;
+    }
+}
+</pre>
+</div>
+
+<div class="tip"><b>提示：</b>如果内存紧张，可以把 <code>pvPortMalloc(1024)</code> 改为静态分配的全局数组，避免动态内存碎片。</div>
+
+<h4>Step 4：发送命令验证</h4>
+<p>将固件烧录到开发板，打开串口工具连接后：</p>
+<ol>
+<li>在发送区输入 <code>vTaskList</code>，点击发送</li>
+<li>接收区应看到类似以下格式的数据：</li>
+</ol>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:12px;line-height:1.5;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+Task           State   Priority  Stack    #
+IDLE           R       0         117      1
+uartTask       B       2         458      3
+sensorTask     B       1         187      4
+Tmr Svc        B       3         102      2
+LEDTask        B       1         312      5
+KeyScan        S       2         234      6
+</pre>
+</div>
+<ol start="3">
+<li>发送 <code>vTaskStats</code>，接收区应显示 CPU 占比：</li>
+</ol>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:12px;line-height:1.5;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+Task           Abs Time    % Time
+IDLE           5123456     65%
+uartTask       1234567     16%
+sensorTask     987654      12%
+Tmr Svc        345678      5%
+LEDTask        123456      2%
+</pre>
+</div>
+<ol start="4">
+<li>切换到 RTOS 监控页面，数据自动解析并显示</li>
+</ol>
+
+<h3>准备工作</h3>
+<p>在 FreeRTOS 项目中添加以下代码到调试命令处理函数：</p>
+<table>
+<tr><th>命令</th><th>代码</th><th>用途</th></tr>
+<tr><td><code>vTaskList</code></td><td><code>vTaskList(buffer); Serial_Print(buffer);</code></td><td>获取任务状态快照</td></tr>
+<tr><td><code>vTaskStats</code></td><td><code>vTaskGetRunTimeStats(buffer); Serial_Print(buffer);</code></td><td>获取 CPU 运行时间占比</td></tr>
+</table>
+
+<div class="warn"><b>注意：</b><br>
+- 使用 vTaskGetRunTimeStats() 前需要配置 configGENERATE_RUN_TIME_STATS 和 portALT_GET_RUN_TIME_COUNTER_VALUE<br>
+- vTaskList() 需要 configUSE_TRACE_FACILITY 为 1</div>
+
+<h3>使用步骤</h3>
+<div class="step"><b>步骤 1：连接串口</b><br>在串口工具中打开串口连接目标板。</div>
+<div class="step"><b>步骤 2：发送命令</b><br>在串口工具中发送 <code>vTaskList</code> 或 <code>vTaskStats</code> 命令。</div>
+<div class="step"><b>步骤 3：自动解析</b><br>切换到 RTOS 监控页面，数据自动解析显示（默认自动检测格式）。</div>
+<div class="step"><b>步骤 4（可选）配置总栈</b><br>点击 <b>配置总栈</b> 为每个任务录入总栈大小，即可看到栈使用百分比进度条。</div>
+
+<h3>表格列说明</h3>
+<table>
+<tr><th>列</th><th>说明</th><th>颜色含义</th></tr>
+<tr><td>#</td><td>FreeRTOS 内部任务编号</td><td>-</td></tr>
+<tr><td>任务名</td><td>任务名称（xTaskCreate 时命名）</td><td>-</td></tr>
+<tr><td>状态</td><td>就绪 / 阻塞 / 挂起 / 删除</td><td>行背景随状态着色</td></tr>
+<tr><td>优先级</td><td>任务优先级（0 = IDLE 最低）</td><td>-</td></tr>
+<tr><td>栈余量(字)</td><td>剩余栈空间（单位：字）</td><td>-</td></tr>
+<tr><td>栈使用%</td><td>进度条（需先配置总栈）</td><td>绿&lt;60% 橙60-85% 红&gt;85%</td></tr>
+<tr><td>CPU%</td><td>CPU 占用百分比</td><td>来自 vTaskGetRunTimeStats</td></tr>
+</table>
+
+<h3>工具栏操作</h3>
+<ul>
+<li><b>格式选择</b>：自动检测 / 强制 vTaskList / 强制 vTaskGetRunTimeStats</li>
+<li><b>暂停 / 继续</b> - 冻结/恢复实时更新</li>
+<li><b>清空</b> - 清除所有数据和行缓存</li>
+<li><b>立即解析</b> - 手动触发解析（支持从剪贴板粘贴数据）</li>
+<li><b>配置总栈</b> - 录入各任务总栈大小，自动计算栈使用百分比</li>
+</ul>
+
+<div class="tip"><b>调试技巧：</b><br>
+- <b>检测栈溢出</b>：栈使用% &gt; 85% 时标红，说明该任务栈空间可能不足<br>
+- <b>观察任务行为</b>：状态在"就绪"和"阻塞"间切换表示正常调度<br>
+- <b>CPU 负载分析</b>：IDLE 占比越低，系统负载越高</div>
+
+<h2 id="sec9">9. CAN 总线 <span class="badge badge-new">NEW</span></h2>
+<p>CAN 总线页面 — 通过 CANable (slcan 协议) 适配器收发 CAN 帧。支持标准帧/扩展帧、周期发送、实时收发表格。</p>
+
+<h3>准备工作</h3>
+<p>将 CANable 设备通过 USB 连接到电脑，确保驱动已安装（CANable 在 Windows 上显示为虚拟串口）。</p>
+
+<h3>使用步骤</h3>
+<div class="step"><b>步骤 1：选择串口</b><br>在连接栏选择 CANable 对应的串口号。</div>
+<div class="step"><b>步骤 2：设置 CAN 波特率</b><br>选择与 CAN 总线一致的波特率（常用 500 kbit/s）。</div>
+<div class="step"><b>步骤 3：打开 CAN</b><br>点击 <b>⚡打开 CAN</b>，工具自动配置 slcan 速率并开启通道。</div>
+<div class="step"><b>步骤 4：发送 CAN 帧</b><br>在发送面板输入 ID(Hex)、DLC、数据(Hex)，点击 <b>发送</b>。</div>
+
+<h3>发送面板说明</h3>
+<table>
+<tr><th>控件</th><th>说明</th></tr>
+<tr><td><b>ID (Hex)</b></td><td>CAN ID 十六进制输入（如 123、0x456）</td></tr>
+<tr><td><b>标准帧 / 扩展帧</b></td><td>标准帧 ID 范围 0x000~0x7FF，扩展帧 0x00000000~0x1FFFFFFF</td></tr>
+<tr><td><b>DLC</b></td><td>数据长度码，0~8</td></tr>
+<tr><td><b>数据 (Hex)</b></td><td>十六进制数据字节，空格分隔（如 01 02 03 04）</td></tr>
+<tr><td><b>周期发送</b></td><td>勾选后按设定间隔自动循环发送</td></tr>
+</table>
+
+<h3>接收表格</h3>
+<p>接收到的 CAN 帧以表格形式显示：</p>
+<ul>
+<li><b>#</b> — 连续帧序号</li>
+<li><b>时间</b> — 精确到毫秒的时间戳</li>
+<li><b>方向</b> — TX(蓝色) / RX(绿色)</li>
+<li><b>ID</b> — CAN ID（十六进制）</li>
+<li><b>DLC</b> — 数据长度</li>
+<li><b>数据</b> — 十六进制字节</li>
+</ul>
+
+<h2 id="sec10">10. 数据日志录制 & 回放 <span class="badge badge-new">NEW</span></h2>
+<p>数据录制 & 回放是<b>全局能力</b>，无论你在哪个页面，都可以录制 DataBus 上的所有数据，之后离线回放查看。</p>
+
+<h3>录制</h3>
+<p>录制、保存、回放按钮位于<b>左侧侧边栏底部</b>。</p>
+<div class="step"><b>步骤 1：点击绿色三角录制按钮</b><br>按钮变为红色方块，开始录制所有数据通道。</div>
+<div class="step"><b>步骤 2：正常操作</b><br>切换页面、收发数据、打开关闭串口——所有操作均被记录。</div>
+<div class="step"><b>步骤 3：停止录制</b><br>再次点击红色方块停止。日志进入待保存状态，不会自动保存为最终文件。</div>
+<div class="step"><b>步骤 4：保存录制</b><br>点击旁边的保存按钮，选择 .estlog 保存位置。</div>
+
+<h3>文件格式</h3>
+<p>.estlog 格式（JSON Lines）：</p>
+<div class="step" style="background:#F7F8FA;color:#24292E;font-family:'Consolas',monospace;font-size:12px;line-height:1.5;border:1px solid #D0D7DE;">
+<pre style="margin:0;">
+{"ts":1683532800123,"ch":"transport.can.0","payload":"t123456780102030405060708"}
+{"ts":1683532800156,"ch":"transport.serial.0","payload":"32352E330D0A"}
+{"ts":1683532800189,"ch":"transport.can.0","payload":"t4567850102"}
+</pre>
+</div>
+
+<h3>回放</h3>
+<p>点击左侧底部的回放按钮打开<b>回放控制栏</b>，加载 .estlog 文件后可播放：</p>
+<ul>
+<li><b>📂 加载</b> — 选择 .estlog 文件</li>
+<li><b>▶ / ⏸</b> — 播放 / 暂停</li>
+<li><b>⏹</b> — 停止回放</li>
+<li><b>进度条</b> — 拖拽跳转到任意位置</li>
+<li><b>1.0x</b> — 循环切换变速 0.5x / 1x / 2x / 5x / 10x</li>
+</ul>
+<p>回放时，所有页面（波形图、协议解析、RTOS 监控、CAN 总线）如同连接真实设备一样自动接收数据。</p>
+
+<div class="tip"><b>典型场景：</b><br>
+- 现场抓到一个异常 → 点录制 → 回来慢慢分析<br>
+- 同事分享 .estlog 文件 → 导入回放，所有页面联动<br>
+- 调整协议解析模板 → 回放同一段数据对比效果</div>
+
+<div class="footer">
+<p>嵌入式工具平台 v1.0<br>
+如有问题或建议，欢迎反馈</p>
+</div>
+
+</body>
+</html>

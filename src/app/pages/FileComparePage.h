@@ -39,6 +39,7 @@ namespace est
         Q_OBJECT
 
     public:
+        // No ICore overload needed — FileComparePage does not require DataBus
         explicit FileComparePage(QWidget *parent = nullptr);
 
         void setRecentRecordManager(RecentRecordManager *manager);

@@ -1,8 +1,9 @@
 #include "widgets/QuickCommandPanel.h"
 
+#include "services/AppPaths.h"
+
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QDir>
 #include <QFile>
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -14,7 +15,6 @@
 #include <QListWidget>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QStandardPaths>
 #include <QVBoxLayout>
 
 namespace est
@@ -267,14 +267,7 @@ namespace est
 
     QString QuickCommandPanel::storagePath() const
     {
-        QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-        if (basePath.isEmpty())
-        {
-            basePath = QDir::homePath() + QStringLiteral("/EmbeddedSoftwareTools");
-        }
-        QDir dir(basePath);
-        dir.mkpath(QStringLiteral("."));
-        return dir.filePath(QStringLiteral("quick_commands.json"));
+        return AppPaths::configFilePath(QStringLiteral("quick_commands.json"));
     }
 
 } // namespace est

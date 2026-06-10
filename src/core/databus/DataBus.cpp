@@ -8,6 +8,8 @@ namespace est {
 DataBus::DataBus(QObject* parent)
     : QObject(parent)
 {
+    // m_nextHandleId starts at 1, quint64 overflow is practically impossible
+    // but adding a safety check doesn't hurt
 }
 
 DataBus::~DataBus() = default;
@@ -15,12 +17,15 @@ DataBus::~DataBus() = default;
 void DataBus::publish(const QString& channel, const DataPacket& packet)
 {
     QReadLocker locker(&m_lock);
-    auto it = m_subscribers.find(channel);
-    if (it == m_subscribers.end()) {
-        return; // 无订阅者，静默丢弃
+
+    QVector<Subscriber> subs;
+    subs.reserve(m_subscribers.size());  // Estimate capacity
+    for (auto it = m_subscribers.cbegin(); it != m_subscribers.cend(); ++it) {
+        if (channelMatches(it.key(), channel)) {
+            subs += it.value();
+        }
     }
 
-    const QVector<Subscriber> subs = it.value();
     locker.unlock(); // 提前释放读锁，防止回调中死锁
 
     for (const Subscriber& sub : subs) {
@@ -29,6 +34,8 @@ void DataBus::publish(const QString& channel, const DataPacket& packet)
         }
     }
 
+    // Observers such as the global data logger must see every publication,
+    // even when no module is currently subscribed to that channel.
     emit dataPublished(channel, packet);
 }
 
@@ -96,6 +103,21 @@ QStringList DataBus::activeChannels() const
 {
     QReadLocker locker(&m_lock);
     return m_subscribers.keys();
+}
+
+bool DataBus::channelMatches(const QString& subscriptionChannel, const QString& publishedChannel)
+{
+    // Supports "foo.*" prefix wildcard only (not "*.bar" or "foo.*.baz")
+    if (subscriptionChannel == publishedChannel) {
+        return true;
+    }
+
+    if (subscriptionChannel.endsWith(QStringLiteral(".*"))) {
+        const QString prefix = subscriptionChannel.left(subscriptionChannel.size() - 1);
+        return publishedChannel.startsWith(prefix);
+    }
+
+    return false;
 }
 
 } // namespace est

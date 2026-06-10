@@ -2,6 +2,7 @@
 
 #include "services/ByteFormatService.h"
 #include "services/DataConvertService.h"
+#include "services/AppPaths.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -224,9 +225,14 @@ namespace est
             emit statusMessageGenerated(tr("转换结果已复制到剪贴板"));
         });
         connect(saveButton, &QPushButton::clicked, this, [this]() {
-            const QString filePath = QFileDialog::getSaveFileName(this, tr("保存转换结果"), QStringLiteral("convert_result.txt"), tr("文本文件 (*.txt)"));
+            const QString filePath = QFileDialog::getSaveFileName(this, tr("保存转换结果"), AppPaths::exportFilePath(QStringLiteral("convert_result.txt")), tr("文本文件 (*.txt)"));
             if (filePath.isEmpty())
             {
+                return;
+            }
+            if (AppPaths::isDriveCPath(filePath))
+            {
+                emit statusMessageGenerated(tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
                 return;
             }
             QFile file(filePath);

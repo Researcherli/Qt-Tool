@@ -34,7 +34,8 @@ bool PluginLoader::loadAll()
 {
     const QStringList pluginFiles = discoverPlugins();
     if (pluginFiles.isEmpty()) {
-        qDebug() << "No plugins found in paths:" << m_pluginPaths;
+        qDebug() << "[EST PluginLoader] No plugin files found in search paths:" << m_pluginPaths;
+        qDebug() << "[EST PluginLoader] This is normal if no plugins are built yet.";
         emit allLoaded();
         return true;
     }
@@ -69,7 +70,26 @@ bool PluginLoader::loadAll()
 
 void PluginLoader::unloadAll()
 {
-    // PluginRegistry 析构时会 shutdown + delete
+    // 逆序卸载：依赖方先卸载
+    // 先从 PluginRegistry 注销所有插件，避免悬空指针
+    if (m_registry)
+    {
+        const QStringList names = m_registry->pluginNames();
+        for (auto it = names.crbegin(); it != names.crend(); ++it)
+        {
+            m_registry->unregisterPlugin(*it);
+        }
+    }
+
+    for (auto it = m_loaders.rbegin(); it != m_loaders.rend(); ++it)
+    {
+        QPluginLoader *loader = *it;
+        if (loader->isLoaded())
+        {
+            loader->unload();
+        }
+        delete loader;
+    }
     m_loaders.clear();
 }
 
@@ -109,7 +129,7 @@ IPlugin* PluginLoader::loadPluginFile(const QString& filePath)
     const int qtVersion = metadata.value(QStringLiteral("version")).toInt();
 
     if (iid.isEmpty()) {
-        qWarning() << "Plugin has no IID metadata, skipping:" << filePath;
+        qWarning() << "[EST Plugin] No IID metadata, skipping:" << filePath;
         emit pluginLoadFailed(filePath, QStringLiteral("No IID metadata (not a valid Qt plugin)"));
         delete loader;
         return nullptr;
@@ -120,7 +140,7 @@ IPlugin* PluginLoader::loadPluginFile(const QString& filePath)
     const int pluginMajorVersion = (qtVersion >> 16) & 0xFFFF;
     const int runtimeMajorVersion = (QT_VERSION >> 16) & 0xFFFF;
     if (pluginMajorVersion != 0 && pluginMajorVersion != runtimeMajorVersion) {
-        qWarning() << "Plugin Qt version mismatch:" << filePath
+        qWarning() << "[EST Plugin] Plugin Qt version mismatch:" << filePath
                     << "plugin Qt major:" << pluginMajorVersion
                     << "runtime Qt major:" << runtimeMajorVersion;
         emit pluginLoadFailed(filePath, QStringLiteral("Qt version mismatch (plugin: %1, runtime: %2)")
@@ -132,7 +152,7 @@ IPlugin* PluginLoader::loadPluginFile(const QString& filePath)
     // 验证 IID 是否匹配我们期望的接口
     // IPlugin 接口的 IID 在 IPlugin.h 中通过 Q_PLUGIN_METADATA(IID "org.est.IPlugin") 声明
     if (iid != QStringLiteral("org.est.IPlugin")) {
-        qWarning() << "Plugin IID mismatch:" << filePath << "IID:" << iid;
+        qWarning() << "[EST Plugin] Plugin IID mismatch:" << filePath << "IID:" << iid;
         emit pluginLoadFailed(filePath, QStringLiteral("IID mismatch: expected org.est.IPlugin, got %1").arg(iid));
         delete loader;
         return nullptr;
@@ -141,7 +161,7 @@ IPlugin* PluginLoader::loadPluginFile(const QString& filePath)
     QObject* instance = loader->instance();
 
     if (!instance) {
-        qWarning() << "Failed to load plugin:" << filePath
+        qWarning() << "[EST Plugin] Failed to load plugin:" << filePath
                     << "Error:" << loader->errorString();
         emit pluginLoadFailed(filePath, loader->errorString());
         delete loader;
@@ -150,7 +170,7 @@ IPlugin* PluginLoader::loadPluginFile(const QString& filePath)
 
     IPlugin* plugin = qobject_cast<IPlugin*>(instance);
     if (!plugin) {
-        qWarning() << "Plugin does not implement IPlugin:" << filePath;
+        qWarning() << "[EST Plugin] Plugin does not implement IPlugin:" << filePath;
         emit pluginLoadFailed(filePath, "Not an IPlugin");
         loader->unload();
         delete loader;

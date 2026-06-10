@@ -5,9 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# MSVC: UTF-8 encoding + strict conformance (Qt 6.11 requires /permissive-)
+# MSVC: UTF-8 encoding + strict conformance (Qt 6.11 requires /permissive-).
+# /FS keeps parallel Debug builds from racing on the shared PDB.
 if(MSVC)
-    add_compile_options(/utf-8 /permissive- /Zc:__cplusplus)
+    add_compile_options(/utf-8 /permissive- /Zc:__cplusplus /FS)
 endif()
 
 set(CMAKE_AUTOMOC ON)
@@ -26,7 +27,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets SerialPort)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets SerialPort Charts)
 
 # === 核心库 ===
 add_subdirectory(src/core)
@@ -35,11 +36,12 @@ add_subdirectory(src/core)
 add_subdirectory(src/app)
 
 # === 插件（可选编译） ===
-option(ENABLE_PLUGIN_CAN_ANALYZER    "Build CAN Analyzer plugin"    ON)
-option(ENABLE_PLUGIN_SERIAL_TERMINAL "Build Serial Terminal plugin"  ON)
-option(ENABLE_PLUGIN_PROTOCOL        "Build Protocol Decoder plugin" ON)
-option(ENABLE_PLUGIN_FLASHER         "Build Firmware Flasher plugin" OFF)
-option(ENABLE_PLUGIN_INSTRUMENT      "Build Instrument Panel plugin" OFF)
+# 插件尚未实现，以下选项预留供未来使用
+# option(ENABLE_PLUGIN_CAN_ANALYZER    "Build CAN Analyzer plugin"    ON)
+# option(ENABLE_PLUGIN_SERIAL_TERMINAL "Build Serial Terminal plugin"  ON)
+# option(ENABLE_PLUGIN_PROTOCOL        "Build Protocol Decoder plugin" ON)
+# option(ENABLE_PLUGIN_FLASHER         "Build Firmware Flasher plugin" OFF)
+# option(ENABLE_PLUGIN_INSTRUMENT      "Build Instrument Panel plugin" OFF)
 
 # === 测试 ===
 option(BUILD_TESTING "Build tests" OFF)

@@ -6,23 +6,34 @@
 #include <QMainWindow>
 #include <QHash>
 
+class QEvent;
 class QLabel;
+class QDockWidget;
 class QStackedWidget;
 
 namespace est
 {
 
     class BinAnalyzerPage;
+    class CANBusPage;
     class DataConvertPage;
     class DataBus;
+    class DataLogger;
+    class DataPlayer;
     class FileComparePage;
     class HomePage;
     class PluginRegistry;
     class PluginLoader;
+    class PlaybackControl;
+    class ProtocolDecoderPage;
     class RecentRecordManager;
+    class SerialConsolePage;
+    class RtosMonitorPage;
     class SerialAssistantPage;
     class SideNavBar;
     class TransportRegistry;
+    class UserGuidePage;
+    class WaveformPage;
 
     /**
      * 应用壳 — 主窗口 + ICore 实现 + 插件管理。
@@ -49,17 +60,31 @@ namespace est
         TransportRegistry *transportRegistry() const override;
         RecentRecordManager *recentRecordManager() const override;
 
+    protected:
+        void changeEvent(QEvent *event) override;
+
     private:
         void setupStatusBar();
-        void setupToolBar();
         void setupWorkspace();
         void registerPluginViews();
+        void initSideNavBar();
+        void initPages();
+        void initSignalConnections();
+        void initRecordingPlayback();
+        void updateSideNavExpansionMode();
         void switchToPage(const QString &pageId);
         void addSystemLog(const QString &text);
         void updateSerialStatus(const QString &text, bool connected);
         void updateCurrentPageTitle(const QString &title);
         void updateCurrentFileStatus(const QString &text);
         void updateTransferStats(qint64 txBytes, qint64 rxBytes);
+        void toggleRecording();
+        void updateRecordingActionUi(bool recording);
+        QString makeDraftRecordingPath() const;
+        void saveRecordingAs();
+        void loadPlaybackFile();
+        void closePlayback();
+        void togglePlaybackPanel();
 
         DataBus *m_dataBus = nullptr;
         PluginRegistry *m_pluginRegistry = nullptr;
@@ -73,6 +98,17 @@ namespace est
         DataConvertPage *m_dataConvertPage = nullptr;
         FileComparePage *m_fileComparePage = nullptr;
         BinAnalyzerPage *m_binAnalyzerPage = nullptr;
+        WaveformPage *m_waveformPage = nullptr;
+        RtosMonitorPage *m_rtosMonitorPage = nullptr;
+        UserGuidePage *m_userGuidePage = nullptr;
+        ProtocolDecoderPage *m_protocolDecoderPage = nullptr;
+        SerialConsolePage *m_serialConsolePage = nullptr;
+        CANBusPage *m_canBusPage = nullptr;
+        DataLogger *m_dataLogger = nullptr;
+        DataPlayer *m_dataPlayer = nullptr;
+        PlaybackControl *m_playbackControl = nullptr;
+        QDockWidget *m_playbackDock = nullptr;
+        QLabel *m_recordStatus = nullptr;
         QLabel *m_readyLabel = nullptr;
         QLabel *m_serialStateLabel = nullptr;
         QLabel *m_fileStateLabel = nullptr;
@@ -81,6 +117,10 @@ namespace est
         QLabel *m_versionLabel = nullptr;
         QLabel *m_titleLabel = nullptr;
         QLabel *m_pageTitleLabel = nullptr;
+        QString m_currentPageId;
+        QString m_pendingRecordingPath;
+        int m_pendingRecordingFrames = 0;
+        qint64 m_pendingRecordingBytes = 0;
         QHash<QString, int> m_pageIndexes;
     };
 

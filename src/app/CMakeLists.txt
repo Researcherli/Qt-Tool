@@ -5,11 +5,17 @@ set(APP_SOURCES
     AppShell.cpp
     ../resources/resources.qrc
     pages/BinAnalyzerPage.cpp
+    pages/CANBusPage.cpp
     pages/DataConvertPage.cpp
     pages/FileComparePage.cpp
     pages/HomePage.cpp
+    pages/ProtocolDecoderPage.cpp
+    pages/RtosMonitorPage.cpp
     pages/SerialAssistantPage.cpp
+    pages/SerialConsolePage.cpp
     pages/SerialPortEnumerator.cpp
+    pages/UserGuidePage.cpp
+    pages/WaveformPage.cpp
     widgets/BinAnalyzerWidget.cpp
     widgets/CodeEditor.cpp
     widgets/DataConvertWidget.cpp
@@ -18,6 +24,8 @@ set(APP_SOURCES
     widgets/HexViewerWidget.cpp
     widgets/IndustrialStatusCard.cpp
     widgets/ModuleIconFactory.cpp
+    widgets/PlaybackControl.cpp
+    widgets/ProtocolTemplateEditor.cpp
     widgets/QuickCommandPanel.cpp
     widgets/SearchBarWidget.cpp
     widgets/SerialConfigBar.cpp
@@ -25,16 +33,23 @@ set(APP_SOURCES
     widgets/SerialSendPanel.cpp
     widgets/SideNavBar.cpp
     widgets/StringExtractPanel.cpp
+    widgets/TerminalWidget.cpp
+    widgets/WaveformChartWidget.cpp
 )
 
 set(APP_HEADERS
     AppShell.h
     pages/BinAnalyzerPage.h
+    pages/CANBusPage.h
     pages/DataConvertPage.h
     pages/FileComparePage.h
     pages/HomePage.h
+    pages/ProtocolDecoderPage.h
+    pages/RtosMonitorPage.h
     pages/SerialAssistantPage.h
+    pages/SerialConsolePage.h
     pages/SerialPortEnumerator.h
+    pages/UserGuidePage.h
     widgets/BinAnalyzerWidget.h
     widgets/CodeEditor.h
     widgets/DataConvertWidget.h
@@ -43,6 +58,8 @@ set(APP_HEADERS
     widgets/HexViewerWidget.h
     widgets/IndustrialStatusCard.h
     widgets/ModuleIconFactory.h
+    widgets/PlaybackControl.h
+    widgets/ProtocolTemplateEditor.h
     widgets/QuickCommandPanel.h
     widgets/SearchBarWidget.h
     widgets/SerialConfigBar.h
@@ -50,6 +67,10 @@ set(APP_HEADERS
     widgets/SerialSendPanel.h
     widgets/SideNavBar.h
     widgets/StringExtractPanel.h
+    widgets/TerminalWidget.h
+    widgets/WaveformChartWidget.h
+    pages/WaveformPage.h
+    pages/ProtocolDecoderPage.h
 )
 
 set(APP_PLATFORM_RESOURCES)
@@ -58,6 +79,7 @@ if(WIN32)
 endif()
 
 add_executable(est_app WIN32 MACOSX_BUNDLE ${APP_SOURCES} ${APP_HEADERS} ${APP_PLATFORM_RESOURCES})
+set_target_properties(est_app PROPERTIES OUTPUT_NAME "EST_Studio")
 
 target_include_directories(est_app
     PRIVATE
@@ -67,11 +89,15 @@ target_include_directories(est_app
 target_link_libraries(est_app
     PRIVATE
         est_core
+        Qt6::Charts
 )
 
 # 插件目录定义（开发模式）
 if(DEFINED EST_PLUGIN_DIR)
     target_compile_definitions(est_app PRIVATE EST_PLUGIN_DIR="${EST_PLUGIN_DIR}")
+else()
+    # 开发模式默认值：指向构建目录的 plugins 子目录
+    target_compile_definitions(est_app PRIVATE EST_PLUGIN_DIR="${CMAKE_BINARY_DIR}/plugins")
 endif()
 
 # SerialPortEnumerator.cpp 使用 SEH __try/__except 保护串口枚举，
@@ -95,6 +121,7 @@ if(WIN32)
                     "$<IF:$<CONFIG:Debug>,--debug,--release>"
                     --compiler-runtime
                     "$<TARGET_FILE:est_app>"
+            COMMAND "${CMAKE_COMMAND}" -E echo "windeployqt completed for est_app"
             COMMENT "Deploying Qt runtime files for est_app"
             VERBATIM
         )

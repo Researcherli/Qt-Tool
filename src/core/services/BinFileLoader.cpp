@@ -18,6 +18,15 @@ namespace est
             return false;
         }
 
+        // Warn if file is very large
+        if (file.size() > 100 * 1024 * 1024) {  // 100MB
+            if (errorMessage != nullptr)
+                *errorMessage = QStringLiteral("文件过大（%1 MB），可能导致内存不足。").arg(file.size() / (1024 * 1024));
+            // Still load it (return false to abort? Let's keep loading but warn)
+            // Actually, let's just warn through qWarning since BinFileLoader has no signal mechanism
+            qWarning() << "Large BIN file:" << filePath << file.size() << "bytes";
+        }
+
         m_data = file.readAll();
         m_filePath = filePath;
         return true;

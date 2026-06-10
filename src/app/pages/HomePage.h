@@ -26,8 +26,12 @@ namespace est
         void openDataConvertRequested();
         void openFileCompareRequested();
         void openBinAnalyzerRequested();
-
-    private:
+        void openWaveformRequested();
+        void openRtosMonitorRequested();
+        void openProtocolDecoderRequested();
+        void openSerialConsoleRequested();
+        void openCANBusRequested();
+        void openUserGuideRequested();
     };
 
 } // namespace est

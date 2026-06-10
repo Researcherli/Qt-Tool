@@ -1,5 +1,7 @@
 #include "widgets/StringExtractPanel.h"
 
+#include "services/AppPaths.h"
+
 #include <QFile>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -90,10 +92,15 @@ namespace est
         const QString filePath = QFileDialog::getSaveFileName(
             this,
             tr("导出字符串结果"),
-            QStringLiteral("bin_strings.csv"),
+            AppPaths::exportFilePath(QStringLiteral("bin_strings.csv")),
             tr("CSV 文件 (*.csv);;文本文件 (*.txt)"));
         if (filePath.isEmpty())
         {
+            return;
+        }
+        if (AppPaths::isDriveCPath(filePath))
+        {
+            emit statusMessageGenerated(tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
             return;
         }
 

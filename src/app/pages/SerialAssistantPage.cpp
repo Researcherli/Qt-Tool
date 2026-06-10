@@ -14,7 +14,9 @@
 #include "pages/SerialPortEnumerator.h"
 
 #include <QDateTime>
+#include <QFrame>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMessageBox>
 #include <QSettings>
 #include <QSizePolicy>
@@ -92,6 +94,41 @@ namespace est
         rootLayout->addWidget(m_configBar);
         rootLayout->addWidget(contentWidget, 1);
 
+        // ---- 底部状态栏 ----
+        auto *footerBar = new QFrame(this);
+        footerBar->setObjectName(QStringLiteral("serialFooterBar"));
+        footerBar->setFixedHeight(28);
+        auto *footerLayout = new QHBoxLayout(footerBar);
+        footerLayout->setContentsMargins(8, 0, 8, 0);
+        footerLayout->setSpacing(12);
+
+        m_footerSerialLabel = new QLabel(tr("串口：未连接"), footerBar);
+        m_footerSerialLabel->setObjectName(QStringLiteral("footerSerialState"));
+
+        m_footerTxLabel = new QLabel(tr("TX：0 B"), footerBar);
+        m_footerTxLabel->setObjectName(QStringLiteral("footerTxStats"));
+
+        m_footerRxLabel = new QLabel(tr("RX：0 B"), footerBar);
+        m_footerRxLabel->setObjectName(QStringLiteral("footerRxStats"));
+
+        footerLayout->addWidget(m_footerSerialLabel);
+        footerLayout->addStretch(1);
+        footerLayout->addWidget(m_footerTxLabel);
+        footerLayout->addWidget(m_footerRxLabel);
+
+        rootLayout->addWidget(footerBar);
+
+        // 内部信号 → 底部状态栏更新
+        connect(this, &SerialAssistantPage::serialStatusChanged,
+                this, [this](const QString &text, bool /*connected*/) {
+            m_footerSerialLabel->setText(tr("串口：%1").arg(text));
+        });
+        connect(this, &SerialAssistantPage::transferStatsChanged,
+                this, [this](qint64 txBytes, qint64 rxBytes) {
+            m_footerTxLabel->setText(tr("TX：%1 B").arg(txBytes));
+            m_footerRxLabel->setText(tr("RX：%1 B").arg(rxBytes));
+        });
+
         m_autoSendTimer = new QTimer(this);
         m_autoSendTimer->setTimerType(Qt::CoarseTimer);
 
@@ -132,6 +169,25 @@ namespace est
             emit transferStatsChanged(m_txBytes, m_rxBytes);
         });
         connect(m_autoSendTimer, &QTimer::timeout, this, &SerialAssistantPage::sendCurrentPayload);
+
+        // 订阅 DataBus 接收回放数据（实时数据通过 ITransport 直连显示）
+        if (m_dataBus != nullptr)
+        {
+            m_subscription = m_dataBus->subscribe(
+                QStringLiteral("transport.serial.*"),
+                [this](const DataPacket &packet)
+                {
+                    // 仅处理回放数据，避免实时模式下重复显示
+                    if (!packet.metadata.value(QStringLiteral("est.replayed")).toBool())
+                        return;
+                    m_receiveView->appendPacket(packet);
+                    if (packet.metadata.value(QStringLiteral("direction")) == QStringLiteral("rx"))
+                        m_rxBytes += packet.rawPayload.size();
+                    else
+                        m_txBytes += packet.rawPayload.size();
+                    emit transferStatsChanged(m_txBytes, m_rxBytes);
+                });
+        }
     }
 
     SerialAssistantPage::~SerialAssistantPage()
@@ -158,7 +214,6 @@ namespace est
             m_configBar->setPortItems({}, m_lastPortName);
             m_configBar->setConnectionState(false, tr("未检测到可用串口"), QStringLiteral("warning"));
             emit systemLogGenerated(tr("刷新串口列表完成，未发现可用串口"));
-            saveSettings();
             return;
         }
 
@@ -264,7 +319,7 @@ namespace est
             return;
         }
 
-        emit systemLogGenerated(tr("尝试打开串口：%1").arg(m_lastPortName));
+        saveSettings();
         if (!m_transport->open(config))
         {
             m_sendPanel->setConnected(false);
@@ -289,7 +344,11 @@ namespace est
     {
         if (m_dataBus != nullptr)
         {
-            m_dataBus->publish(packet.channel, packet);
+            // 异步发布到 DataBus，避免订阅者回调阻塞接收线程
+            auto bus = m_dataBus;
+            QTimer::singleShot(0, this, [bus, packet]() {
+                bus->publish(packet.channel, packet);
+            });
         }
         m_receiveView->appendPacket(packet);
         m_rxBytes += packet.rawPayload.size();

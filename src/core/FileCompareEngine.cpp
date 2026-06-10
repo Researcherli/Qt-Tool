@@ -256,6 +256,7 @@ namespace est
                             int bStart,
                             int bEnd,
                             int maxExactLines,
+                            std::vector<int> &scoreBuffer,
                             QList<DiffLine> &result)
         {
             while (aStart < aEnd && bStart < bEnd && normalizedA.at(aStart) == normalizedB.at(bStart))
@@ -303,8 +304,9 @@ namespace est
             }
 
             const int aMid = aStart + aLen / 2;
-            const std::vector<int> leftScores = lcsPrefixScores(normalizedA, normalizedB, aStart, aMid, bStart, bEnd);
+            scoreBuffer = lcsPrefixScores(normalizedA, normalizedB, aStart, aMid, bStart, bEnd);
             const std::vector<int> rightScores = lcsSuffixScores(normalizedA, normalizedB, aMid, aEnd, bStart, bEnd);
+            const std::vector<int> &leftScores = scoreBuffer;
 
             int bestSplit = 0;
             int bestScore = -1;
@@ -318,13 +320,18 @@ namespace est
                 }
             }
 
-            buildLargeDiff(linesA, linesB, normalizedA, normalizedB, aStart, aMid, bStart, bStart + bestSplit, maxExactLines, result);
-            buildLargeDiff(linesA, linesB, normalizedA, normalizedB, aMid, aEnd, bStart + bestSplit, bEnd, maxExactLines, result);
+            buildLargeDiff(linesA, linesB, normalizedA, normalizedB, aStart, aMid, bStart, bStart + bestSplit, maxExactLines, scoreBuffer, result);
+            buildLargeDiff(linesA, linesB, normalizedA, normalizedB, aMid, aEnd, bStart + bestSplit, bEnd, maxExactLines, scoreBuffer, result);
             result.append(suffix);
         }
 
         QList<DiffLine> coalesceChangedRuns(const QList<DiffLine> &raw)
         {
+            static constexpr int kMaxCoalesceLines = 5000;
+            if (raw.size() > kMaxCoalesceLines) {
+                return raw;
+            }
+
             QList<DiffLine> result;
             int index = 0;
 
@@ -458,8 +465,9 @@ namespace est
         const QStringList normalizedB = normalizedLines(linesB, options);
 
         QList<DiffLine> rawDiffs;
+        std::vector<int> scoreBuffer;
         buildLargeDiff(linesA, linesB, normalizedA, normalizedB,
-                       0, linesA.size(), 0, linesB.size(), options.maxExactLines, rawDiffs);
+                       0, linesA.size(), 0, linesB.size(), options.maxExactLines, scoreBuffer, rawDiffs);
 
         QList<DiffLine> result = coalesceChangedRuns(rawDiffs);
 
@@ -566,6 +574,7 @@ namespace est
         out << ".removed { background: #3a1b1b; } .removed .text { color: #f44747; }\n";
         out << ".modified { background: #3a3a1b; } .modified .text { color: #dcdcaa; }\n";
         out << ".sep { background: #333; height: 2px; }\n";
+        out << "tr:nth-child(even) { background: #2d2d2d; }\n";
         out << "</style>\n</head>\n<body>\n";
         out << "<h2>" << leftTitle << " ↔ " << rightTitle << "</h2>\n";
         out << "<table>\n";
@@ -618,8 +627,20 @@ namespace est
         out << QObject::tr("新增行: %1\n").arg(added);
         out << QObject::tr("删除行: %1\n").arg(removed);
         out << QObject::tr("修改行: %1\n").arg(modified);
-        out << QObject::tr("变更块: %1\n").arg(added + removed + modified > 0 ?
-            (added > 0 ? 1 : 0) + (removed > 0 ? 1 : 0) + (modified > 0 ? 1 : 0) : 0);
+        // Count actual diff hunks
+        int hunks = 0;
+        bool inHunk = false;
+        for (const auto &diff : diffs) {
+            if (diff.status != DiffLine::Equal) {
+                if (!inHunk) {
+                    ++hunks;
+                    inHunk = true;
+                }
+            } else {
+                inHunk = false;
+            }
+        }
+        out << QObject::tr("变更块: %1\n").arg(hunks);
         return summary;
     }
 

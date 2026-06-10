@@ -20,6 +20,10 @@ namespace est
                              qsizetype width,
                              ByteDataInspectorService::Endian endian)
         {
+            if (width <= 0 || width > 8) {
+                qWarning() << "Invalid width for readUnsigned:" << width;
+                return 0;
+            }
             quint64 value = 0;
             if (endian == ByteDataInspectorService::Endian::Little)
             {
@@ -83,7 +87,7 @@ namespace est
                 signedValue = static_cast<qint64>(unsignedValue);
                 break;
             default:
-                return QStringLiteral("-");
+                return QStringLiteral("-%1 (不支持 %2 字节有符号)").arg(unsignedHex(unsignedValue, static_cast<int>(width * 2))).arg(width);
             }
 
             return QStringLiteral("%1 (%2)").arg(signedValue).arg(unsignedHex(unsignedValue, static_cast<int>(width * 2)));

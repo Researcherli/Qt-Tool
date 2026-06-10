@@ -3,5 +3,7 @@
         <file>icons/app_icon_256.png</file>
         <file>themes/industrial_dark.qss</file>
         <file>themes/wood_classic.qss</file>
+        <file>docs/user_guide.html</file>
+        <file>scripts/est_serial_helper.py</file>
     </qresource>
 </RCC>

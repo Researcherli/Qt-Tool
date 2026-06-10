@@ -1,14 +1,14 @@
 #include "services/RecentRecordManager.h"
 
+#include "services/AppPaths.h"
+
 #include <QDateTime>
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMutexLocker>
-#include <QStandardPaths>
 
 namespace est
 {
@@ -18,15 +18,7 @@ namespace est
 
         QString storagePath()
         {
-            QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-            if (basePath.isEmpty())
-            {
-                basePath = QDir::homePath() + QStringLiteral("/EmbeddedSoftwareTools");
-            }
-
-            QDir dir(basePath);
-            dir.mkpath(QStringLiteral("."));
-            return dir.filePath(QStringLiteral("recent_records.json"));
+            return AppPaths::configFilePath(QStringLiteral("recent_records.json"));
         }
 
         QJsonObject loadRoot()

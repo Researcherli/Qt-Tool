@@ -1,7 +1,7 @@
 # Embedded Software Tools - 长期记忆
 
 ## 项目概览
-- **名称**: Embedded Software Tools (EST Platform)
+- **名称**: EST Studio
 - **定位**: 嵌入式开发综合工具平台（CAN分析/串口调试/协议解码/固件烧录/仪表采集）
 - **技术栈**: Qt6 + CMake + C++17
 - **目标用户**: 个人/团队内部使用

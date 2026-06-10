@@ -1,4 +1,5 @@
 #include "services/ByteChecksumService.h"
+#include "services/EncodingUtil.h"
 
 #include <QCryptographicHash>
 
@@ -10,7 +11,7 @@ namespace est
 
         QString hexValue(quint64 value, int digits)
         {
-            return QStringLiteral("0x%1").arg(value, digits, 16, QLatin1Char('0')).toUpper().replace(QStringLiteral("0X"), QStringLiteral("0x"));
+            return EncodingUtil::hexPrefix(value, digits);
         }
 
         QString hashHex(QByteArrayView data, QCryptographicHash::Algorithm algorithm)
@@ -48,6 +49,9 @@ namespace est
             return sum;
         }
 
+        // NOTE: CRC implementations below use bit-by-bit computation.
+        // For large data sets (>1MB), consider using a lookup-table approach
+        // for significant performance improvement.
         quint8 crc8(QByteArrayView data)
         {
             quint8 crc = 0x00;

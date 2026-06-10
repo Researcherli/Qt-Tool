@@ -24,6 +24,9 @@ namespace est
             return false;
         }
 
+        // Currently uses QByteArray::indexOf() which internally uses Boyer-Moore.
+        // For very large files (>100MB) with frequent searches, consider KMP or aho-corasick.
+
         if (query.type == SearchType::Offset)
         {
             qsizetype offset = 0;

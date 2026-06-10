@@ -27,7 +27,7 @@ public:
     /// 注册传输工厂
     void registerFactory(const QString& type, TransportFactory factory);
 
-    /// 创建传输实例
+    /// 创建传输实例（调用方负责生命周期管理，建议通过 setParent() 管理）
     ITransport* createTransport(const QString& type);
 
     /// 获取所有已注册的传输类型

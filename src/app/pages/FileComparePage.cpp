@@ -3,6 +3,7 @@
 #include "widgets/IndustrialStatusCard.h"
 #include "widgets/DiffMinimapWidget.h"
 #include "widgets/CodeEditor.h"
+#include "services/AppPaths.h"
 #include "services/RecentRecordManager.h"
 
 #include <QVBoxLayout>
@@ -476,8 +477,12 @@ namespace est
             connect(actionPatch, &QAction::triggered, this, [this]()
                     {
                 if (!m_leftFile.loaded || !m_rightFile.loaded || m_allDiffs.isEmpty()) return;
-                QString savePath = QFileDialog::getSaveFileName(this, tr("导出 Unified Diff"), QString(), tr("Patch 文件 (*.patch)"));
+                QString savePath = QFileDialog::getSaveFileName(this, tr("导出 Unified Diff"), AppPaths::exportFilePath(QStringLiteral("diff.patch")), tr("Patch 文件 (*.patch)"));
                 if (savePath.isEmpty()) return;
+                if (AppPaths::isDriveCPath(savePath)) {
+                    QMessageBox::warning(this, tr("导出失败"), tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
+                    return;
+                }
                 QString patch = FileCompareEngine::exportUnifiedDiff(
                     m_leftFile.lines, m_rightFile.lines,
                     QFileInfo(m_leftFile.path).fileName(), QFileInfo(m_rightFile.path).fileName(),
@@ -491,8 +496,12 @@ namespace est
             connect(actionHtml, &QAction::triggered, this, [this]()
                     {
                 if (m_allDiffs.isEmpty()) return;
-                QString savePath = QFileDialog::getSaveFileName(this, tr("导出 HTML 报告"), QString(), tr("HTML 文件 (*.html)"));
+                QString savePath = QFileDialog::getSaveFileName(this, tr("导出 HTML 报告"), AppPaths::exportFilePath(QStringLiteral("diff_report.html")), tr("HTML 文件 (*.html)"));
                 if (savePath.isEmpty()) return;
+                if (AppPaths::isDriveCPath(savePath)) {
+                    QMessageBox::warning(this, tr("导出失败"), tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
+                    return;
+                }
                 QString html = FileCompareEngine::exportHtmlDiff(m_allDiffs,
                     m_leftFile.loaded ? QFileInfo(m_leftFile.path).fileName() : tr("无"),
                     m_rightFile.loaded ? QFileInfo(m_rightFile.path).fileName() : tr("无"));
@@ -505,8 +514,12 @@ namespace est
             connect(actionSummary, &QAction::triggered, this, [this]()
                     {
                 if (m_allDiffs.isEmpty()) return;
-                QString savePath = QFileDialog::getSaveFileName(this, tr("导出文本摘要"), QString(), tr("文本文件 (*.txt)"));
+                QString savePath = QFileDialog::getSaveFileName(this, tr("导出文本摘要"), AppPaths::exportFilePath(QStringLiteral("diff_summary.txt")), tr("文本文件 (*.txt)"));
                 if (savePath.isEmpty()) return;
+                if (AppPaths::isDriveCPath(savePath)) {
+                    QMessageBox::warning(this, tr("导出失败"), tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
+                    return;
+                }
                 QString summary = FileCompareEngine::exportTextSummary(m_allDiffs);
                 QFile f(savePath);
                 if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {

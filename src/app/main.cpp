@@ -1,21 +1,24 @@
 #include "AppShell.h"
 
+#include "services/AppPaths.h"
+
 #include <QApplication>
 #include <QFile>
 #include <QIcon>
 #include <QStyleFactory>
 #include <QDebug>
-#include <QStandardPaths>
 
 void logToFile(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    QFile file("C:\\Users\\19893\\AppData\\Local\\Temp\\opencode\\crash_log.txt");
+    Q_UNUSED(type)
+    Q_UNUSED(context)
+
+    QFile file(est::AppPaths::logFilePath(QStringLiteral("crash_log.txt")));
     if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
     {
         return;
     }
-    file.write(localMsg);
+    file.write(msg.toLocal8Bit());
     file.write("\n");
     file.close();
 }
@@ -31,9 +34,10 @@ int main(int argc, char *argv[])
     // 应用信息
     app.setOrganizationName("EST");
     app.setOrganizationDomain("embedded-software-tools.local");
-    app.setApplicationName(QStringLiteral("嵌入式工具"));
-    app.setApplicationDisplayName(QStringLiteral("嵌入式工具"));
+    app.setApplicationName(QStringLiteral("EST Studio"));
+    app.setApplicationDisplayName(QStringLiteral("EST Studio"));
     app.setApplicationVersion(QStringLiteral("2.0.0"));
+    est::AppPaths::configureQSettings();
     app.setWindowIcon(QIcon(QStringLiteral(":/icons/app_icon_256.png")));
     app.setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
 

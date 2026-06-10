@@ -1,6 +1,7 @@
 #include "widgets/SerialReceiveView.h"
 
 #include "databus/DataPacket.h"
+#include "services/AppPaths.h"
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -298,9 +299,14 @@ namespace est
         connect(clearButton, &QPushButton::clicked, m_searchEdit, &QLineEdit::clear);
         connect(settingsButton, &QPushButton::clicked, this, [this]() { showDisplaySettingsDialog(); });
         connect(saveButton, &QPushButton::clicked, this, [this]() {
-            const QString filePath = QFileDialog::getSaveFileName(this, tr("保存串口日志"), QStringLiteral("serial_log.txt"), tr("文本日志 (*.txt *.log)"));
+            const QString filePath = QFileDialog::getSaveFileName(this, tr("保存串口日志"), AppPaths::logFilePath(QStringLiteral("serial_log.txt")), tr("文本日志 (*.txt *.log)"));
             if (filePath.isEmpty())
             {
+                return;
+            }
+            if (AppPaths::isDriveCPath(filePath))
+            {
+                emit statusMessageGenerated(tr("保存路径不能在 C 盘，请选择软件目录下的数据文件夹"));
                 return;
             }
             QFile file(filePath);
