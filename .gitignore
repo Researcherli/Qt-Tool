@@ -83,3 +83,4 @@ CMakeLists.txt.user*
 .uic/
 /build*/
 /.qtcreator/
+EST_Studio_Setup_*.exe

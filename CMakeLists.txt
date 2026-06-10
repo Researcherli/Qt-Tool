@@ -43,6 +43,31 @@ add_subdirectory(src/app)
 # option(ENABLE_PLUGIN_FLASHER         "Build Firmware Flasher plugin" OFF)
 # option(ENABLE_PLUGIN_INSTRUMENT      "Build Instrument Panel plugin" OFF)
 
+# === CPack 安装包配置 ===
+set(CPACK_PACKAGE_NAME "EST_Studio")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VENDOR "Embedded Software Tools")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "嵌入式软件开发工具集 - CAN总线分析、协议解码、RTOS监控、串口终端、波形分析")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "EST Studio")
+set(CPACK_GENERATOR "NSIS")
+set(CPACK_NSIS_DISPLAY_NAME "EST Studio")
+set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
+set(CPACK_NSIS_PACKAGE_NAME "EST Studio")
+set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/src/resources/icons/app_icon_256.png")
+set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/src/resources/icons/app_icon_256.png")
+set(CPACK_NSIS_CREATE_ICONS_EXTRA "
+    CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\EST Studio.lnk' '$INSTDIR\\\\bin\\\\EST_Studio.exe'
+    CreateShortCut '$DESKTOP\\\\EST Studio.lnk' '$INSTDIR\\\\bin\\\\EST_Studio.exe'
+")
+set(CPACK_NSIS_DELETE_ICONS_EXTRA "
+    Delete '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\EST Studio.lnk'
+    Delete '$DESKTOP\\\\EST Studio.lnk'
+")
+set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+set(CPACK_NSIS_MODIFY_PATH OFF)
+
+include(CPack)
+
 # === 测试 ===
 option(BUILD_TESTING "Build tests" OFF)
 if(BUILD_TESTING)
